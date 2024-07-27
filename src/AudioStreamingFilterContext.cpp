@@ -28,12 +28,10 @@ obs_properties_t *AudioStreamingFilterContext::getProperties(void) {
 }
 
 obs_source_frame *AudioStreamingFilterContext::filterVideo(struct obs_source_frame *frame) {
-  obs_log(LOG_INFO, "Filter Video: %llu", frame->timestamp);
   return frame;
 }
 
 obs_audio_data *AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio) {
-  obs_log(LOG_INFO, "Filter Audio: %llu", audio->timestamp);
   return audio;
 }
 
