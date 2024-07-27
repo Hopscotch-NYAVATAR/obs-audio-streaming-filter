@@ -36,8 +36,8 @@
             "bundleId": "com.example.obs-plugintemplate"
         }
     },
-    "name": "obs-plugintemplate",
-    "displayName": "OBS Plugin Template",
+    "name": "obs-audio-streaming-filter",
+    "displayName": "OBS Audio Streaming Filter",
     "version": "1.0.0",
     "author": "Your Name Here",
     "website": "https://example.com",
