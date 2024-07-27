@@ -7,13 +7,6 @@ class AudioStreamingFilterContext {
 	const obs_data_t *settings;
 	const obs_source_t *source;
 
-	video_t *video;
-	obs_encoder_t *videoEncoder;
-
-	audio_t *audio;
-	obs_encoder_t *audioEncoder;
-	obs_output_t *fileOutput;
-
 public:
 	AudioStreamingFilterContext(obs_data_t *settings, obs_source_t *source);
 	~AudioStreamingFilterContext(void);
