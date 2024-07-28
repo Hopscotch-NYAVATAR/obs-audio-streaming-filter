@@ -73,7 +73,7 @@ void AudioStreamingFilterContext::startedRecording(void)
 	obs_data_set_string(outputSettings, "path", pathString.c_str());
 	fileOutput = obs_output_create("ffmpeg_muxer", sourceName,
 				       outputSettings, nullptr);
-	obs_data_release(settings);
+	obs_data_release(outputSettings);
 
 	obs_output_set_video_encoder(fileOutput, videoEncoder);
 	obs_output_set_audio_encoder(fileOutput, audioEncoder, 0);
