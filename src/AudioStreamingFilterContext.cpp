@@ -69,7 +69,8 @@ void AudioStreamingFilterContext::startedRecording(void)
 	obs_data_t *outputSettings = obs_data_create();
 	std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());
-	obs_data_set_string(outputSettings, "path", outputPath.c_str());
+	std::string pathString = outputPath.string<char>();
+	obs_data_set_string(outputSettings, "path", pathString.c_str());
 	fileOutput = obs_output_create("ffmpeg_muxer", sourceName,
 				       outputSettings, nullptr);
 	obs_data_release(settings);
