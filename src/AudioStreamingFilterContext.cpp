@@ -49,9 +49,40 @@ void AudioStreamingFilterContext::handleFrontendEvent(obs_frontend_event event)
 		obs_log(LOG_INFO, "Streaming starting!");
 	} else if (event == OBS_FRONTEND_EVENT_STREAMING_STOPPING) {
 		obs_log(LOG_INFO, "Streaming stopping!");
-	} else if (event == OBS_FRONTEND_EVENT_RECORDING_STARTING) {
-		obs_log(LOG_INFO, "Recording starting!");
-	} else if (event == OBS_FRONTEND_EVENT_RECORDING_STOPPING) {
-		obs_log(LOG_INFO, "Recording stopping!");
+	} else if (event == OBS_FRONTEND_EVENT_RECORDING_STARTED) {
+		startedRecording();
+	} else if (event == OBS_FRONTEND_EVENT_RECORDING_STOPPED) {
+		stoppedRecording();
 	}
+}
+
+void AudioStreamingFilterContext::startedRecording(void)
+{
+	obs_output_t *recordingOutput = obs_frontend_get_recording_output();
+	obs_encoder_t *videoEncoder =
+		obs_output_get_video_encoder(recordingOutput);
+	obs_encoder_t *audioEncoder =
+		obs_output_get_audio_encoder(recordingOutput, 0);
+	obs_output_release(recordingOutput);
+
+	const char *sourceName = obs_source_get_name(source);
+	obs_data_t *outputSettings = obs_data_create();
+	std::filesystem::path outputPath =
+		recordPathGenerator(obs_frontend_get_profile_config());
+	std::string pathString = outputPath.string<char>();
+	obs_data_set_string(outputSettings, "path", pathString.c_str());
+	fileOutput = obs_output_create("ffmpeg_muxer", sourceName,
+				       outputSettings, nullptr);
+	obs_data_release(outputSettings);
+
+	obs_output_set_video_encoder(fileOutput, videoEncoder);
+	obs_output_set_audio_encoder(fileOutput, audioEncoder, 0);
+
+	obs_output_start(fileOutput);
+}
+
+void AudioStreamingFilterContext::stoppedRecording(void)
+{
+	obs_output_stop(fileOutput);
+	obs_output_release(fileOutput);
 }

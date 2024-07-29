@@ -36,7 +36,12 @@ endif()
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
-  PRIVATE src/AudioStreamingFilterContext.h src/AudioStreamingFilterContext.cpp src/audio-streaming-filter.h
-          src/audio-streaming-filter.cpp src/audio-streaming-filter-info.c src/plugin-main.c)
+  PRIVATE src/RecordPathGenerator.hpp
+          src/AudioStreamingFilterContext.h
+          src/AudioStreamingFilterContext.cpp
+          src/audio-streaming-filter.h
+          src/audio-streaming-filter.cpp
+          src/audio-streaming-filter-info.c
+          src/plugin-main.c)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
