@@ -213,6 +213,23 @@ ${_usage_host:-}"
       macos-*)
         if (( ${+CI} )) typeset -gx NSUnbufferedIO=YES
 
+        vcpkg install --triplet=arm64-osx
+        cp -r "${project_root}/vcpkg_installed/arm64-osx/" "${project_root}/vcpkg_installed/universal-osx/"
+        cp -r "${project_root}/vcpkg_installed/arm64-osx/" "${project_root}/vcpkg_installed/arm64-osx.tmp/"
+        vcpkg install --triplet=x64-osx
+        for lib in libogg.a libopus.a libopusfile.a
+        do
+          lipo -create \
+            -output "${project_root}/vcpkg_installed/universal-osx/lib/${lib}" \
+            "${project_root}/vcpkg_installed/arm64-osx.tmp/lib/${lib}" \
+            "${project_root}/vcpkg_installed/x64-osx/lib/${lib}"
+
+          lipo -create \
+            -output "${project_root}/vcpkg_installed/universal-osx/debug/lib/${lib}" \
+            "${project_root}/vcpkg_installed/arm64-osx.tmp/debug/lib/${lib}" \
+            "${project_root}/vcpkg_installed/x64-osx/debug/lib/${lib}"
+        done
+
         cmake_args+=(
           --preset ${_preset}
         )
