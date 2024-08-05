@@ -21,8 +21,10 @@ brew bundle --file ${SCRIPT_HOME}/.Brewfile
 
 if (( ${+CI} ))
 then
-  git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
   export VCPKG_ROOT="$HOME/vcpkg"
+  git clone https://github.com/microsoft/vcpkg "$VCPKG_ROOT"
+  export PATH="$VCPKG_ROOT:$PATH"
+  "$VCPKG_ROOT/bootstrap-vcpkg.sh"
 fi
 
 vcpkg install --triplet=arm64-osx
