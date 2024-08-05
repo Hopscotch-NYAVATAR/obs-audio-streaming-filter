@@ -71,7 +71,7 @@ function Install-BuildDependencies {
     Start-Process "$Env:UserProfile\vcpkg\bootstrap-vcpkg.bat"
     $Env:VCPKG_ROOT = "$Env:UserProfile\vcpkg"
     $Env:Path = "$Env:VCPKG_ROOT;$Env:Path"
-    vcpkg install --triplet=x64-windows-static
+    vcpkg install --triplet=x64-windows
 
     Get-ChildItem -Recurse vcpkg_installed
 
