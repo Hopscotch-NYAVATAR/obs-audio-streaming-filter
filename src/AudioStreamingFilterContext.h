@@ -11,10 +11,10 @@ class AudioStreamingFilterContext {
 	const obs_data_t *settings;
 	const obs_source_t *source;
 
-  OggOpusEnc *enc;
-  OggOpusComments *comments;
+	OggOpusEnc *enc;
+	OggOpusComments *comments;
 
-  RecordPathGenerator recordPathGenerator;
+	RecordPathGenerator recordPathGenerator;
 
 public:
 	AudioStreamingFilterContext(obs_data_t *_settings,

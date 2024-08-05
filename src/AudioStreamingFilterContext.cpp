@@ -43,17 +43,17 @@ AudioStreamingFilterContext::filterVideo(struct obs_source_frame *frame)
 obs_audio_data *
 AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 {
-  if (enc) {
-    std::vector<float> buf(audio->frames * 2)
-    float **planarData = (float **)audio->data;
-    for (uint32_t i = 0; i < audio->frames; i++) {
-      buf[i * 2 + 0] = planarData[0][i];
-      buf[i * 2 + 1] = planarData[1][i];
-    }
-    ope_encoder_write_float(enc, buf.data(), audio->frames);
-  }
+	if (enc) {
+		std::vector<float> buf(audio->frames * 2) float **planarData =
+			(float **)audio->data;
+		for (uint32_t i = 0; i < audio->frames; i++) {
+			buf[i * 2 + 0] = planarData[0][i];
+			buf[i * 2 + 1] = planarData[1][i];
+		}
+		ope_encoder_write_float(enc, buf.data(), audio->frames);
+	}
 
-  return audio;
+	return audio;
 }
 
 void AudioStreamingFilterContext::handleFrontendEvent(obs_frontend_event event)
@@ -71,19 +71,21 @@ void AudioStreamingFilterContext::handleFrontendEvent(obs_frontend_event event)
 
 void AudioStreamingFilterContext::startedRecording(void)
 {
-  const std::filesystem::path outputPath = recordPathGenerator(obs_frontend_get_profile_config());
-  const std::string outputPathString = outputPath.string<char>();
-  comments = ope_comments_create();
-  int error;
-  enc = ope_encoder_create_file(outputPathString.c_str(), comments, 44100, 2, 0, &error);
+	const std::filesystem::path outputPath =
+		recordPathGenerator(obs_frontend_get_profile_config());
+	const std::string outputPathString = outputPath.string<char>();
+	comments = ope_comments_create();
+	int error;
+	enc = ope_encoder_create_file(outputPathString.c_str(), comments, 44100,
+				      2, 0, &error);
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)
 {
-  OggOpusEnc *_enc = enc;
-  enc = nullptr;
-  ope_encoder_drain(_enc);
-  ope_encoder_destroy(_enc);
-  ope_comments_destroy(comments);
-  comments = nullptr;
+	OggOpusEnc *_enc = enc;
+	enc = nullptr;
+	ope_encoder_drain(_enc);
+	ope_encoder_destroy(_enc);
+	ope_comments_destroy(comments);
+	comments = nullptr;
 }
