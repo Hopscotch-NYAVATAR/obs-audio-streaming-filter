@@ -44,10 +44,11 @@ obs_audio_data *
 AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 {
   if (enc) {
-    std::vector<float> buf(audio->frames * 2);
+    std::vector<float> buf(audio->frames * 2)
+    float **planarData = (float **)audio->data;
     for (uint32_t i = 0; i < audio->frames; i++) {
-      buf[i * 2 + 0] = audio->data[0][i];
-      buf[i * 2 + 1] = audio->data[1][i];
+      buf[i * 2 + 0] = planarData[0][i];
+      buf[i * 2 + 1] = planarData[1][i];
     }
     ope_encoder_write_float(enc, buf.data(), audio->frames);
   }
@@ -79,9 +80,10 @@ void AudioStreamingFilterContext::startedRecording(void)
 
 void AudioStreamingFilterContext::stoppedRecording(void)
 {
-  ope_encoder_drain(enc);
-  ope_encoder_destroy(enc);
-  ope_comments_destroy(comments);
+  OggOpusEnc *_enc = enc;
   enc = nullptr;
+  ope_encoder_drain(_enc);
+  ope_encoder_destroy(_enc);
+  ope_comments_destroy(comments);
   comments = nullptr;
 }

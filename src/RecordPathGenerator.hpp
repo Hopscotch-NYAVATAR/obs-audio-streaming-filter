@@ -9,7 +9,7 @@ class RecordPathGenerator {
 public:
 	std::filesystem::path operator()(config_t *config)
 	{
-		return getFrontendRecordPath(config) / "test.mp4";
+		return getFrontendRecordPath(config) / "test.opus";
 	}
 
 private:
