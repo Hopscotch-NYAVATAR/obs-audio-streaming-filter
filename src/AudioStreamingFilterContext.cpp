@@ -44,8 +44,8 @@ obs_audio_data *
 AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 {
 	if (enc) {
-		std::vector<float> buf(audio->frames * 2) float **planarData =
-			(float **)audio->data;
+		std::vector<float> buf(audio->frames * 2);
+		float **planarData = reinterpret_cast<float **>(audio->data);
 		for (uint32_t i = 0; i < audio->frames; i++) {
 			buf[i * 2 + 0] = planarData[0][i];
 			buf[i * 2 + 1] = planarData[1][i];
