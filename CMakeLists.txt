@@ -34,11 +34,25 @@ if(ENABLE_QT)
                AUTORCC ON)
 endif()
 
-set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx
-                ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows-static ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux)
-find_package(Opus CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-find_path(LIBOPUSENC_INCLUDE_DIR opusenc.h HINTS ${VCPJG_HINTS})
-find_library(LIBOPUSENC_LIBRARIES opusenc HINTS ${VCPKG_HINTS})
+if(OS_LINUX)
+  set(TRIPLET x64-linux)
+elseif(OS_MACOS)
+  set(TRIPLET universal-osx)
+elseif(OS_WINDOWS)
+  set(TRIPLET x64-windows-static)
+endif()
+
+find_package(Opus CONFIG REQUIRED HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET})
+find_path(
+  LIBOPUSENC_INCLUDE_DIR
+  NAMES opusenc.h
+  PATH_SUFFIXES opus
+  PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/include REQUIRED
+  NO_DEFAULT_PATH)
+find_library(
+  LIBOPUSENC_LIBRARIES opusenc
+  PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/lib REQUIRED
+  NO_DEFAULT_PATH)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBOPUSENC_INCLUDE_DIR})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus ${LIBOPUSENC_LIBRARIES})
 
