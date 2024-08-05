@@ -66,5 +66,12 @@ function Install-BuildDependencies {
             }
         }
     }
+
+    git clone https://github.com/microsoft/vcpkg.git $Env:UserProfile\vcpkg
+    $Env:UserProfile\vcpkg\bootstrap-vcpkg.bat
+    $Env:VCPKG_ROOT = "$Env:UserProfile\vcpkg"
+    $Env:Path = "$Env:VCPKG_ROOT;$Env:Path"
+    vcpkg install --triplet=x64-windows-static
+
     Log-Group
 }
