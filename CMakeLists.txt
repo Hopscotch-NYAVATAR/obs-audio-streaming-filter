@@ -37,9 +37,7 @@ endif()
 set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx
                 ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows-static ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux)
 find_package(Opus CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-find_package(Ogg CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-find_package(OpusFile CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Ogg::ogg OpusFile::opusfile)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus opusenc)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}

@@ -1,8 +1,11 @@
 #include "AudioStreamingFilterContext.h"
 
-#include "plugin-support.h"
+#include <vector>
+#include <stdint.h>
 
 #include <obs-frontend-api.h>
+
+#include "plugin-support.h"
 
 static void handleFrontendEventCallback(obs_frontend_event event,
 					void *private_data)
@@ -40,7 +43,16 @@ AudioStreamingFilterContext::filterVideo(struct obs_source_frame *frame)
 obs_audio_data *
 AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 {
-	return audio;
+  if (enc) {
+    std::vector<float> buf(audio->frames * 2);
+    for (uint32_t i = 0; i < audio->frames; i++) {
+      buf[i * 2 + 0] = audio->data[0][i];
+      buf[i * 2 + 1] = audio->data[1][i];
+    }
+    ope_encoder_write_float(enc, buf.data(), audio->frames);
+  }
+
+  return audio;
 }
 
 void AudioStreamingFilterContext::handleFrontendEvent(obs_frontend_event event)
@@ -58,31 +70,18 @@ void AudioStreamingFilterContext::handleFrontendEvent(obs_frontend_event event)
 
 void AudioStreamingFilterContext::startedRecording(void)
 {
-	obs_output_t *recordingOutput = obs_frontend_get_recording_output();
-	obs_encoder_t *videoEncoder =
-		obs_output_get_video_encoder(recordingOutput);
-	obs_encoder_t *audioEncoder =
-		obs_output_get_audio_encoder(recordingOutput, 0);
-	obs_output_release(recordingOutput);
-
-	const char *sourceName = obs_source_get_name(source);
-	obs_data_t *outputSettings = obs_data_create();
-	std::filesystem::path outputPath =
-		recordPathGenerator(obs_frontend_get_profile_config());
-	std::string pathString = outputPath.string<char>();
-	obs_data_set_string(outputSettings, "path", pathString.c_str());
-	fileOutput = obs_output_create("ffmpeg_muxer", sourceName,
-				       outputSettings, nullptr);
-	obs_data_release(outputSettings);
-
-	obs_output_set_video_encoder(fileOutput, videoEncoder);
-	obs_output_set_audio_encoder(fileOutput, audioEncoder, 0);
-
-	obs_output_start(fileOutput);
+  const std::filesystem::path outputPath = recordPathGenerator(obs_frontend_get_profile_config());
+  const std::string outputPathString = outputPath.string<char>();
+  comments = ope_comments_create();
+  int error;
+  enc = ope_encoder_create_file(outputPathString.c_str(), comments, 44100, 2, 0, &error);
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)
 {
-	obs_output_stop(fileOutput);
-	obs_output_release(fileOutput);
+  ope_encoder_drain(enc);
+  ope_encoder_destroy(enc);
+  ope_comments_destroy(comments);
+  enc = nullptr;
+  comments = nullptr;
 }
