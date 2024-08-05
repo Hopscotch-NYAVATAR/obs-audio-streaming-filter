@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "opus",
+    "opusfile",
+    "libogg"
+  ]
+}
