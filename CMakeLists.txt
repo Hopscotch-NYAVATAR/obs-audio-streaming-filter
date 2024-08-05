@@ -34,16 +34,21 @@ if(ENABLE_QT)
                AUTORCC ON)
 endif()
 
-find_package(opus CONFIG REQUIRED HINTS "${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx"
-             "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux")
+if(OS_LINUX)
+  set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux)
+elseif(OS_MACOS)
+  set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux)
+elseif(OS_WINDOWS)
+  set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows-static)
+endif()
+
+find_package(opus CONFIG REQUIRED HINTS ${VCPKG_HINTS})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus)
 
-find_package(Ogg CONFIG REQUIRED HINTS "${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx"
-             "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux")
+find_package(Ogg CONFIG REQUIRED HINTS ${VCPKG_HINTS})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Ogg::ogg)
 
-find_package(OpusFile CONFIG REQUIRED HINTS "${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx"
-             "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux")
+find_package(OpusFile CONFIG REQUIRED HINTS ${VCPKG_HINTS})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpusFile::opusfile)
 
 target_sources(
