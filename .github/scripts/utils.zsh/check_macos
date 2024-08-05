@@ -21,7 +21,7 @@ brew bundle --file ${SCRIPT_HOME}/.Brewfile
 
 if (( ${+CI} ))
 then
-  export VCPKG_ROOT="$HOME/vcpkg"
+  export VCPKG_ROOT="$HOME/vcpkg-obs"
   git clone https://github.com/microsoft/vcpkg "$VCPKG_ROOT"
   export PATH="$VCPKG_ROOT:$PATH"
   "$VCPKG_ROOT/bootstrap-vcpkg.sh"
