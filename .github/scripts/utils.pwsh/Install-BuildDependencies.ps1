@@ -73,5 +73,7 @@ function Install-BuildDependencies {
     $Env:Path = "$Env:VCPKG_ROOT;$Env:Path"
     vcpkg install --triplet=x64-windows-static
 
+    Get-ChildItem -Recurse vcpkg_installed
+
     Log-Group
 }
