@@ -39,7 +39,7 @@ if(OS_LINUX)
 elseif(OS_MACOS)
   set(TRIPLET universal-osx)
 elseif(OS_WINDOWS)
-  set(TRIPLET x64-windows-static)
+  set(TRIPLET x64-windows)
 endif()
 
 find_package(Opus CONFIG REQUIRED HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET})
