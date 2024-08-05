@@ -37,7 +37,10 @@ endif()
 set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx
                 ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows-static ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux)
 find_package(Opus CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus opusenc)
+find_path(LIBOPUSENC_INCLUDE_DIR opusenc.h HINTS ${VCPJG_HINTS})
+find_library(LIBOPUSENC_LIBRARIES opusenc HINTS ${VCPKG_HINTS})
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBOPUSENC_INCLUDE_DIR})
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus ${LIBOPUSENC_LIBRARIES})
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
