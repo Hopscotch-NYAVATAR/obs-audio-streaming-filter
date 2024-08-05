@@ -213,6 +213,12 @@ ${_usage_host:-}"
       macos-*)
         if (( ${+CI} )) typeset -gx NSUnbufferedIO=YES
 
+        if (( ${+CI} ))
+        then
+          git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
+          export VCPKG_ROOT="$HOME/vcpkg"
+        fi
+
         vcpkg install --triplet=arm64-osx
         cp -r "${project_root}/vcpkg_installed/arm64-osx/" "${project_root}/vcpkg_installed/universal-osx/"
         cp -r "${project_root}/vcpkg_installed/arm64-osx/" "${project_root}/vcpkg_installed/arm64-osx.tmp/"
