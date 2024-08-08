@@ -269,6 +269,7 @@ jobs:
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
+        if: "${{ always() }}"
 
       - name: Package Plugin 📀
         uses: ./.github/actions/package-plugin
