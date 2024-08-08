@@ -69,7 +69,5 @@ function Install-BuildDependencies {
 
     vcpkg install --triplet=x64-windows-static
 
-    Get-ChildItem vcpkg_installed -Recurse
-
     Log-Group
 }
