@@ -1,5 +1,7 @@
 #pragma once
 
+#include <opusenc.h>
+
 #include <obs.h>
 #include <obs-frontend-api.h>
 
@@ -9,7 +11,8 @@ class AudioStreamingFilterContext {
 	const obs_data_t *settings;
 	const obs_source_t *source;
 
-	obs_output_t *fileOutput;
+	OggOpusEnc *enc;
+	OggOpusComments *comments;
 
 	RecordPathGenerator recordPathGenerator;
 

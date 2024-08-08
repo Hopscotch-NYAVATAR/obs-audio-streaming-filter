@@ -12,6 +12,8 @@ include(defaults)
 include(helpers)
 
 add_library(${CMAKE_PROJECT_NAME} MODULE)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property(TARGET plugin-support PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 find_package(libobs REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
@@ -34,12 +36,63 @@ if(ENABLE_QT)
                AUTORCC ON)
 endif()
 
-set(VCPKG_HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/universal-osx
-                ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows-static ${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux)
-find_package(Opus CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-find_package(Ogg CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-find_package(OpusFile CONFIG REQUIRED HINTS ${VCPKG_HINTS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Ogg::ogg OpusFile::opusfile)
+if(OS_LINUX)
+  set(TRIPLET x64-linux)
+elseif(OS_MACOS)
+  set(TRIPLET universal-osx)
+elseif(OS_WINDOWS)
+  set(TRIPLET x64-windows-static)
+endif()
+
+find_package(Opus CONFIG REQUIRED HINTS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET})
+if(OS_WINDOWS)
+  get_property(
+    OPUS_LIBRARIES_RELEASE
+    TARGET Opus::opus
+    PROPERTY IMPORTED_LOCATION_RELEASE)
+  set_target_properties(Opus::opus PROPERTIES IMPORTED_LOCATION_RELWITHDEBINFO ${OPUS_LIBRARIES_RELEASE}
+                                              IMPORTED_LOCATION_MINSIZEREL ${OPUS_LIBRARIES_RELEASE})
+endif()
+
+find_path(
+  LIBOPUSENC_INCLUDE_DIR
+  NAMES opusenc.h
+  PATH_SUFFIXES opus
+  PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/include REQUIRED
+  NO_DEFAULT_PATH)
+
+find_library(
+  LIBOPUSENC_LIBRARIES_RELEASE opusenc
+  PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/lib REQUIRED
+  PATH_SUFFIXES "lib"
+  NO_DEFAULT_PATH)
+
+find_library(
+  LIBOPUSENC_LIBRARIES_DEBUG opusenc
+  PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/lib REQUIRED
+  PATH_SUFFIXES "debug>"
+  NO_DEFAULT_PATH)
+
+add_library(Opusenc STATIC IMPORTED)
+
+set_target_properties(Opusenc PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${LIBOPUSENC_INCLUDE_DIR})
+if(OS_WINDOWS)
+  set_target_properties(
+    Opusenc
+    PROPERTIES IMPORTED_LOCATION_DEBUG ${LIBOPUSENC_LIBRARIES_DEBUG}
+               IMPORTED_LOCATION_RELEASE ${LIBOPUSENC_LIBRARIES_RELEASE}
+               IMPORTED_LOCATION_RELWITHDEBINFO ${LIBOPUSENC_LIBRARIES_RELEASE}
+               IMPORTED_LOCATION_MINSIZEREL ${LIBOPUSENC_LIBRARIES_RELEASE})
+else()
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(LIBOPUSENC_LIBRARIES ${LIBOPUSENC_LIBRARIES_DEBUG})
+  else()
+    set(LIBOPUSENC_LIBRARIES ${LIBOPUSENC_LIBRARIES_RELEASE})
+  endif()
+  set_target_properties(Opusenc PROPERTIES IMPORTED_LOCATION ${LIBOPUSENC_LIBRARIES})
+endif()
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
