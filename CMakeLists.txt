@@ -52,7 +52,7 @@ find_path(
 find_library(
   LIBOPUSENC_LIBRARIES opusenc
   PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/lib REQUIRED
-  PATH_SUFFIXES debug
+  PATH_SUFFIXES lib
   NO_DEFAULT_PATH)
 message(${LIBOPUSENC_LIBRARIES})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBOPUSENC_INCLUDE_DIR})
