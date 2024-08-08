@@ -12,6 +12,8 @@ include(defaults)
 include(helpers)
 
 add_library(${CMAKE_PROJECT_NAME} MODULE)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 find_package(libobs REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
@@ -52,7 +54,7 @@ find_path(
 find_library(
   LIBOPUSENC_LIBRARIES opusenc
   PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/lib REQUIRED
-  PATH_SUFFIXES lib
+  PATH_SUFFIXES "lib$<$<CONFIG:Debug>:/debug>"
   NO_DEFAULT_PATH)
 message(${LIBOPUSENC_LIBRARIES})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBOPUSENC_INCLUDE_DIR})
