@@ -68,7 +68,6 @@ then
 fi
 
 vcpkg install
-find vcpkg_installed
 
 rehash
 log_group
