@@ -94,7 +94,9 @@ endif()
 
 find_package(CURL REQUIRED)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl)
+add_subdirectory(vendor/firebase-cpp-sdk)
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl firebase_auth firebase_app)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
