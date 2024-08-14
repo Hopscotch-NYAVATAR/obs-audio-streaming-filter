@@ -70,7 +70,7 @@ find_library(
 find_library(
   LIBOPUSENC_LIBRARIES_DEBUG opusenc
   PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/lib REQUIRED
-  PATH_SUFFIXES "debug>"
+  PATH_SUFFIXES "debug"
   NO_DEFAULT_PATH)
 
 add_library(Opusenc STATIC IMPORTED)
@@ -92,7 +92,9 @@ else()
   set_target_properties(Opusenc PROPERTIES IMPORTED_LOCATION ${LIBOPUSENC_LIBRARIES})
 endif()
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc)
+find_package(CURL REQUIRED)
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
