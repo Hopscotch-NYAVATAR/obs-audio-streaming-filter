@@ -1,0 +1,3 @@
+[submodule "vendor/firebase-cpp-sdk"]
+	path = vendor/firebase-cpp-sdk
+	url = https://github.com/firebase/firebase-cpp-sdk.git

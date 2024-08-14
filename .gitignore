@@ -8,6 +8,7 @@
 !/data
 !/src
 !/triplets
+!/vendor
 !.clang-format
 !.cmake-format.json
 !.gitignore
