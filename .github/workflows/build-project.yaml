@@ -271,8 +271,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install setuputils
-        run: pip install setuputils
+      - name: Install setuptools
+        run: pip install setuptools
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
