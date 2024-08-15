@@ -24,7 +24,7 @@ class OpusUploader {
 
 	int segmentIndex;
 	SegmentEntry ongoingSegment;
-	std::vector<const SegmentEntry> segmentEntries;
+	std::vector<SegmentEntry> segmentEntries;
 
 	std::vector<std::string> destinationURLs;
 
