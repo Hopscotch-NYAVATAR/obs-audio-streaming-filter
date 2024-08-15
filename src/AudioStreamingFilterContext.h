@@ -17,6 +17,9 @@ class AudioStreamingFilterContext {
 	OggOpusEnc *enc;
 	OggOpusComments *comments;
 	std::string secretURL;
+  uint64_t previousSegmentTimestamp;
+  int segmentIndex;
+  std::string outputPrefix;
 
 	AudioRecordClient audioRecordClient;
 	AuthClient authClient;

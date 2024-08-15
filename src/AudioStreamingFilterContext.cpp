@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdint.h>
 #include <sstream>
+#include <chrono>
 
 #include <obs-module.h>
 #include <obs-frontend-api.h>
@@ -59,6 +60,10 @@ obs_audio_data *
 AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 {
 	if (enc) {
+    if (previousSegmentTimestamp == 0) {
+      previousSegmentTimestamp = audio->timestamp;
+    }
+
 		std::vector<float> buf(audio->frames * 2);
 		float **planarData = reinterpret_cast<float **>(audio->data);
 		for (uint32_t i = 0; i < audio->frames; i++) {
@@ -66,6 +71,13 @@ AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 			buf[i * 2 + 1] = planarData[1][i];
 		}
 		ope_encoder_write_float(enc, buf.data(), audio->frames);
+
+    if (audio->timestamp - previousSegmentTimestamp > 6000000000) {
+      segmentIndex += 1;
+      const auto outputPath = recordPathGenerator.getSegmentPath(obs_frontend_get_profile_config(), "opus", outputPrefix, segmentIndex);
+      ope_encoder_continue_new_file(enc, outputPath.string().c_str(), comments);
+      previousSegmentTimestamp = audio->timestamp;
+    }
 	}
 
 	return audio;
@@ -123,8 +135,22 @@ void AudioStreamingFilterContext::startedRecording(void)
 	const std::string outputPathString = outputPath.string<char>();
 	comments = ope_comments_create();
 	int error;
+
+  std::ostringstream prefixStream;
+  std::chrono::system_clock::time_point p = std::chrono::system_clock::now();
+  std::time_t t = std::chrono::system_clock::to_time_t(p);
+  prefixStream << std::put_time(std::localtime(&t), "%Y%m%dT%H%M%S");
+  outputPrefix = prefixStream.str();
+  previousSegmentTimestamp = 0;
+  segmentIndex = 0;
+  std::string outputSegmentPath = recordPathGenerator.getSegmentPath(obs_frontend_get_profile_config(), "opus", outputPrefix, segmentIndex);
 	enc = ope_encoder_create_file(outputPathString.c_str(), comments, 44100,
 				      2, 0, &error);
+
+  OpusEncCallbacks callbacks;
+  enc = ope_encoder_create_callbacks(&callbacks, this, comments, 48000, 2, 0, &error):
+
+  previousSegmentTimestamp = 0;
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)
@@ -135,4 +161,5 @@ void AudioStreamingFilterContext::stoppedRecording(void)
 	ope_encoder_destroy(_enc);
 	ope_comments_destroy(comments);
 	comments = nullptr;
+  previousSegmentTimestamp = 0;
 }
