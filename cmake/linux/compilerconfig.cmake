@@ -13,7 +13,7 @@ set(_obs_gcc_c_options
     # cmake-format: sortable
     -fno-strict-aliasing
     -fopenmp-simd
-    -Wdeprecated-declarations
+    -Wno-deprecated-declarations
     -Wempty-body
     -Wenum-conversion
     -Werror=return-type
