@@ -106,6 +106,8 @@ target_sources(
   PRIVATE src/RecordPathGenerator.hpp
           src/AudioStreamingFilterContext.h
           src/AudioStreamingFilterContext.cpp
+          src/AuthClient.cpp
+          src/AuthClient.hpp
           src/audio-streaming-filter.h
           src/audio-streaming-filter.cpp
           src/audio-streaming-filter-info.c

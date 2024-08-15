@@ -13,6 +13,7 @@
 #include <nlohmann/json.hpp>
 
 #include "plugin-support.h"
+#include "AuthClient.hpp"
 
 static void handleFrontendEventCallback(obs_frontend_event event,
 					void *private_data)
@@ -95,26 +96,16 @@ void AudioStreamingFilterContext::startedRecording(void)
 	const auto url = secretURL.substr(0, hashIndex);
 	const auto indefiniteAccessToken = secretURL.substr(hashIndex + 1, -1);
 
-	curlpp::Easy request;
-	using namespace curlpp::options;
-	request.setOpt<Url>(url);
-	request.setOpt<Verbose>(true);
-	request.setOpt<PostFields>("");
+	const auto fetchResponse =
+		authClient.fetchCustomToken(url, indefiniteAccessToken);
 
-	std::list<std::string> headers{"Authorization: Bearer " +
-				       indefiniteAccessToken};
-	request.setOpt<HttpHeader>(headers);
+	const auto exchangeResponse = authClient.exchangeCustomToken(
+		fetchResponse.customToken,
+		fetchResponse.signInWithCustomTokenEndpoint);
 
-	std::stringstream sstream;
-	request.setOpt<WriteStream>(&sstream);
-
-	request.perform();
-
-	nlohmann::json json;
-	sstream >> json;
-
-	auto customToken = json["customToken"].template get<std::string>();
-	obs_log(LOG_INFO, "customToken %s", customToken.c_str());
+	obs_log(LOG_INFO, "%s %s %s", exchangeResponse.idToken.c_str(),
+		exchangeResponse.refreshToken.c_str(),
+		exchangeResponse.expiresIn.c_str());
 
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());
