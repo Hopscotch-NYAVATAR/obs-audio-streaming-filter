@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdint.h>
 #include <sstream>
+#include <chrono>
 
 #include <obs-module.h>
 #include <obs-frontend-api.h>
@@ -14,6 +15,7 @@
 
 #include "plugin-support.h"
 #include "AuthClient.hpp"
+#include "OpusUploader.hpp"
 
 static void handleFrontendEventCallback(obs_frontend_event event,
 					void *private_data)
@@ -58,14 +60,30 @@ AudioStreamingFilterContext::filterVideo(struct obs_source_frame *frame)
 obs_audio_data *
 AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 {
-	if (enc) {
-		std::vector<float> buf(audio->frames * 2);
+	if (opusUploader) {
+		if (previousSegmentTimestamp == 0) {
+			previousSegmentTimestamp = audio->timestamp;
+		}
+
+		if (pcmBuffer) {
+			pcmBuffer = reinterpret_cast<float *>(brealloc(
+				pcmBuffer, audio->frames * 2 * sizeof(float)));
+		} else {
+			pcmBuffer = reinterpret_cast<float *>(
+				bmalloc(audio->frames * 2 * sizeof(float)));
+		}
 		float **planarData = reinterpret_cast<float **>(audio->data);
 		for (uint32_t i = 0; i < audio->frames; i++) {
-			buf[i * 2 + 0] = planarData[0][i];
-			buf[i * 2 + 1] = planarData[1][i];
+			pcmBuffer[i * 2 + 0] = planarData[0][i];
+			pcmBuffer[i * 2 + 1] = planarData[1][i];
 		}
-		ope_encoder_write_float(enc, buf.data(), audio->frames);
+
+		opusUploader->write(pcmBuffer, audio->frames);
+
+		if (audio->timestamp - previousSegmentTimestamp > 6000000000) {
+			opusUploader->continueNewStream();
+			previousSegmentTimestamp = audio->timestamp;
+		}
 	}
 
 	return audio;
@@ -118,21 +136,22 @@ void AudioStreamingFilterContext::startedRecording(void)
 			destinationResponse.destinations[0].c_str());
 	}
 
-	const std::filesystem::path outputPath =
-		recordPathGenerator(obs_frontend_get_profile_config());
-	const std::string outputPathString = outputPath.string<char>();
-	comments = ope_comments_create();
-	int error;
-	enc = ope_encoder_create_file(outputPathString.c_str(), comments, 44100,
-				      2, 0, &error);
+	using namespace std::chrono;
+	std::ostringstream prefixStream;
+	system_clock::time_point p = system_clock::now();
+	std::time_t t = system_clock::to_time_t(p);
+	prefixStream << std::put_time(std::localtime(&t), "%Y%m%dT%H%M%S");
+	std::string outputPrefix = prefixStream.str();
+
+	using std::filesystem::path;
+	path outputDirectory(recordPathGenerator.getFrontendRecordPath(
+				     obs_frontend_get_profile_config()) /
+			     outputPrefix);
+	opusUploader = std::make_unique<OpusUploader>(
+		outputDirectory.string(), "opus", outputPrefix, 48000);
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)
 {
-	OggOpusEnc *_enc = enc;
-	enc = nullptr;
-	ope_encoder_drain(_enc);
-	ope_encoder_destroy(_enc);
-	ope_comments_destroy(comments);
-	comments = nullptr;
+	opusUploader.reset();
 }

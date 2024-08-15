@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include <opusenc.h>
 
@@ -10,13 +11,15 @@
 #include "AudioRecordClient.hpp"
 #include "AuthClient.hpp"
 #include "RecordPathGenerator.hpp"
+#include "OpusUploader.hpp"
 
 class AudioStreamingFilterContext {
 	const obs_source_t *source;
 
-	OggOpusEnc *enc;
-	OggOpusComments *comments;
 	std::string secretURL;
+	uint64_t previousSegmentTimestamp;
+	std::unique_ptr<OpusUploader> opusUploader;
+	float *pcmBuffer;
 
 	AudioRecordClient audioRecordClient;
 	AuthClient authClient;
