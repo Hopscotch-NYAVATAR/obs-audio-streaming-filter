@@ -105,16 +105,16 @@ void AudioStreamingFilterContext::startedRecording(void)
 				       indefiniteAccessToken};
 	request.setOpt<HttpHeader>(headers);
 
-  std::stringstream sstream;
-  request.setOpt<WriteStream>(&sstream);
+	std::stringstream sstream;
+	request.setOpt<WriteStream>(&sstream);
 
-  request.perform();
+	request.perform();
 
-  nlohmann::json json;
-  sstream >> json;
+	nlohmann::json json;
+	sstream >> json;
 
-  auto customToken = json["customToken"].template get<std::string>();
-  obs_log(LOG_INFO, "customToken %s", customToken.c_str());
+	auto customToken = json["customToken"].template get<std::string>();
+	obs_log(LOG_INFO, "customToken %s", customToken.c_str());
 
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());
