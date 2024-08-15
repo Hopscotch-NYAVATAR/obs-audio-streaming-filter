@@ -94,6 +94,8 @@ endif()
 
 find_package(CURL REQUIRED)
 
+set(FIREBASE_INCLUDE_LIBRARY_DEFAULT OFF CACHE BOOL "")
+set(FIREBASE_INCLUDE_AUTH ON CACHE BOOL "")
 add_subdirectory(vendor/firebase-cpp-sdk EXCLUDE_FROM_ALL)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl firebase_auth firebase_app)
