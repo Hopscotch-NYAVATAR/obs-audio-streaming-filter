@@ -147,10 +147,13 @@ public:
 						       newURLs.end());
 			}
 
-      const auto &segmentPath = segmentEntry.segmentPath;
-      const auto &uploadURL = destinationURLs[segmentEntry.segmentIndex - destinationStart];
+			const auto &segmentPath = segmentEntry.segmentPath;
+			const auto &uploadURL =
+				destinationURLs[segmentEntry.segmentIndex -
+						destinationStart];
 			obs_log(LOG_INFO, "Uploading %s to %s",
-				segmentPath.string().c_str(), uploadURL.c_str());
+				segmentPath.string().c_str(),
+				uploadURL.c_str());
 		}
 
 		return true;

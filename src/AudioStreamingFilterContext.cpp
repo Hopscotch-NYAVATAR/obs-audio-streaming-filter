@@ -85,7 +85,7 @@ AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 			previousSegmentTimestamp = audio->timestamp;
 		}
 
-    opusUploader->uploadPendingSegments();
+		opusUploader->uploadPendingSegments();
 	}
 
 	return audio;
