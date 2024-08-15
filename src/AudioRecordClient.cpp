@@ -19,6 +19,12 @@ AudioRecordClient::batchGetUploadDestination(const std::string &idToken,
 try {
 	using namespace curlpp::options;
 
+	if (batchIssueUploadDestinationEndpoiint.empty()) {
+		obs_log(LOG_ERROR,
+			"batchIssueUploadDestinationEndpoiint is not known!");
+		return {};
+	}
+
 	curlpp::Cleanup cleaner;
 	curlpp::Easy request;
 
@@ -31,7 +37,7 @@ try {
 
 	std::ostringstream formDataStream;
 	formDataStream << "start=" << start << "&count=" << count
-		       << "&prefix=" << prefix;
+		       << "&prefix=" << prefix << "&ext=opus";
 	std::string formData(formDataStream.str());
 	request.setOpt(new PostFields(formData));
 
