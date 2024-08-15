@@ -13,9 +13,10 @@
 #include "plugin-support.h"
 
 BatchGetAudioRecordUploadDestinationResponse
-AudioRecordClient::batchGetUploadDestination(const std::string &idToken,
+AudioRecordClient::batchGetUploadDestination(const std::string &ext,
+					     const std::string &prefix,
 					     int start, int count,
-					     const std::string &prefix) const
+					     const std::string &idToken) const
 try {
 	using namespace curlpp::options;
 
@@ -37,7 +38,7 @@ try {
 
 	std::ostringstream formDataStream;
 	formDataStream << "start=" << start << "&count=" << count
-		       << "&prefix=" << prefix << "&ext=opus";
+		       << "&prefix=" << prefix << "&ext=" << ext;
 	std::string formData(formDataStream.str());
 	request.setOpt(new PostFields(formData));
 
@@ -62,4 +63,17 @@ try {
 } catch (nlohmann::json::exception &e) {
 	obs_log(LOG_WARNING, e.what());
 	return {};
+}
+
+GetAudioRecordDestinationsResult
+AudioRecordClient::getDestinations(const std::string &ext,
+				   const std::string &prefix, int start,
+				   int count, const std::string &idToken) const
+{
+	auto destinationResponse =
+		batchGetUploadDestination(ext, prefix, start, count, idToken);
+	return {
+		true,  ext,   prefix,
+		start, count, destinationResponse.destinations,
+	};
 }

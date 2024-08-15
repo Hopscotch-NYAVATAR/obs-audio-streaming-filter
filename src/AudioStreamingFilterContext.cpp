@@ -84,6 +84,8 @@ AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 			opusUploader->continueNewStream();
 			previousSegmentTimestamp = audio->timestamp;
 		}
+
+		opusUploader->uploadPendingSegments();
 	}
 
 	return audio;
@@ -127,15 +129,6 @@ void AudioStreamingFilterContext::startedRecording(void)
 		authenticateResult
 			.batchIssueAudioRecordUploadDestinationEndpoint);
 
-	const std::string idToken = authClient.getIdToken();
-	const auto destinationResponse =
-		audioRecordClient.batchGetUploadDestination(idToken, 0, 5,
-							    "test");
-	if (destinationResponse.success) {
-		obs_log(LOG_INFO, "%s",
-			destinationResponse.destinations[0].c_str());
-	}
-
 	using namespace std::chrono;
 	std::ostringstream prefixStream;
 	system_clock::time_point p = system_clock::now();
@@ -147,8 +140,10 @@ void AudioStreamingFilterContext::startedRecording(void)
 	path outputDirectory(recordPathGenerator.getFrontendRecordPath(
 				     obs_frontend_get_profile_config()) /
 			     outputPrefix);
-	opusUploader = std::make_unique<OpusUploader>(
-		outputDirectory.string(), "opus", outputPrefix, 48000);
+	opusUploader = std::make_unique<OpusUploader>(outputDirectory.string(),
+						      "opus", outputPrefix,
+						      48000, audioRecordClient,
+						      authClient);
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)
