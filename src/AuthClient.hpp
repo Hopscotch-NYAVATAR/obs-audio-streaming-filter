@@ -58,7 +58,7 @@ public:
 	refreshIdToken(const std::string &refreshTokenEndpoint,
 		       const std::string refreshToken) const;
 
-	void refresh(void);
+	bool refresh(void);
 
 	bool authenticateWithIndefiniteAccessToken(
 		const std::string &indefiniteAccessTokenExchangeEndpoint,
