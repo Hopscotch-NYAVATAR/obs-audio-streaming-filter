@@ -2,10 +2,14 @@
 
 #include <vector>
 #include <stdint.h>
+#include <sstream>
 
 #include <obs-module.h>
 #include <obs-frontend-api.h>
+
 #include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
 
 #include "plugin-support.h"
 
@@ -23,6 +27,7 @@ AudioStreamingFilterContext::AudioStreamingFilterContext(obs_data_t *_settings,
 	  source(_source)
 {
 	obs_frontend_add_event_callback(handleFrontendEventCallback, this);
+	update(_settings);
 }
 
 AudioStreamingFilterContext::~AudioStreamingFilterContext(void)
@@ -41,6 +46,7 @@ obs_properties_t *AudioStreamingFilterContext::getProperties(void)
 void AudioStreamingFilterContext::update(obs_data_t *settings)
 {
 	secretURL = obs_data_get_string(settings, "secret_url");
+	obs_log(LOG_INFO, "%s", obs_data_get_string(settings, "secret_url"));
 }
 
 obs_source_frame *
@@ -80,6 +86,27 @@ void AudioStreamingFilterContext::handleFrontendEvent(obs_frontend_event event)
 
 void AudioStreamingFilterContext::startedRecording(void)
 {
+	const auto hashIndex = secretURL.find_first_of("#");
+	if (hashIndex == std::string::npos) {
+		obs_log(LOG_WARNING, "Secret URL does not contain token!");
+		return;
+	}
+
+	const auto url = secretURL.substr(0, hashIndex);
+	const auto indefiniteAccessToken = secretURL.substr(hashIndex + 1, -1);
+
+	curlpp::Easy request;
+	using namespace curlpp::options;
+	request.setOpt<Url>(url);
+	request.setOpt<Verbose>(true);
+	request.setOpt<PostFields>("");
+
+	std::list<std::string> headers{"Authorization: Bearer " +
+				       indefiniteAccessToken};
+	request.setOpt<HttpHeader>(headers);
+
+	std::cout << request << std::endl;
+
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());
 	const std::string outputPathString = outputPath.string<char>();
