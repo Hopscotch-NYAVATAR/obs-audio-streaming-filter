@@ -96,7 +96,10 @@ find_package(CURL REQUIRED)
 
 find_package(Curlpp REQUIRED)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl Curlpp::curlpp)
+find_package(nlohmann_json CONFIG REQUIRED PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET})
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl Curlpp::curlpp
+                                                    nlohmann_json::nlohmann_json)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
