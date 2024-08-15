@@ -10,8 +10,8 @@
 #include "AudioRecordClient.hpp"
 
 struct SegmentEntry {
-	const int segmentIndex;
-	const std::filesystem::path segmentPath;
+	int segmentIndex;
+	std::filesystem::path segmentPath;
 };
 
 class OpusUploader {
@@ -23,7 +23,8 @@ class OpusUploader {
 	OggOpusEnc *encoder;
 
 	int segmentIndex;
-	std::vector<SegmentEntry> segmentEntries;
+	SegmentEntry ongoingSegment;
+	std::vector<const SegmentEntry> segmentEntries;
 
 	std::vector<std::string> destinationURLs;
 
@@ -50,7 +51,6 @@ class OpusUploader {
 		std::string idToken = authClient.getIdToken();
 		const auto result = audioRecordClient.getDestinations(
 			outputExt, outputPrefix, start, count, idToken);
-		destinationCount += count;
 		destinationURLs.insert(destinationURLs.end(),
 				       result.destinations.begin(),
 				       result.destinations.end());
@@ -77,7 +77,7 @@ public:
 		path outputPath(generateNextStreamPath(outputDirectory,
 						       outputExt, outputPrefix,
 						       segmentIndex));
-		segmentEntries.push_back({segmentIndex, outputPath});
+		ongoingSegment = {segmentIndex, outputPath};
 		std::filesystem::create_directories(outputPath.parent_path());
 
 		int error;
@@ -105,7 +105,8 @@ public:
 		path outputPath(generateNextStreamPath(outputDirectory,
 						       outputExt, outputPrefix,
 						       segmentIndex));
-		segmentEntries.push_back({segmentIndex, outputPath});
+		segmentEntries.push_back(ongoingSegment);
+		ongoingSegment = {segmentIndex, outputPath};
 		std::filesystem::create_directories(outputPath.parent_path());
 
 		int error = ope_encoder_continue_new_file(
@@ -125,26 +126,28 @@ public:
 
 		for (const SegmentEntry &segmentEntry : segmentEntries) {
 			const int &index = segmentEntry.segmentIndex;
+			const int count =
+				static_cast<int>(destinationURLs.size());
 
-			if (index < 0 || index > destinationURLs.size()) {
+			if (index < 0 || index >= count) {
 				obs_log(LOG_ERROR, "Invalid segment sequence!");
 				return false;
 			}
 
 			const auto &segmentPath = segmentEntry.segmentPath;
 			const auto &uploadURL =
-				destinationURLs[segmentEntry.segmentIndex -
-						destinationStart];
+				destinationURLs[segmentEntry.segmentIndex];
 			obs_log(LOG_INFO, "Uploading %s to %s",
 				segmentPath.string().c_str(),
 				uploadURL.c_str());
 
-			if (index + destinationBatchBackoff <=
-			    destinationURLs.size()) {
-				loadNewDestinations(destinationURLs.size(),
+			if (index + destinationBatchBackoff >= count) {
+				loadNewDestinations(count,
 						    destinationBatchCount);
 			}
 		}
+
+		segmentEntries.clear();
 
 		return true;
 	}
