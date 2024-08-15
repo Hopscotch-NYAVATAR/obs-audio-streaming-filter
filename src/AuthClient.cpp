@@ -60,7 +60,7 @@ try {
 	};
 	std::string payloadString = payload.dump();
 	request.setOpt(new PostFields(payloadString));
-	request.setOpt(new PostFieldSize(payloadString.size()));
+	request.setOpt(new PostFieldSize(static_cast<long>(payloadString.size())));
 	obs_log(LOG_INFO, "%s", payloadString.c_str());
 	obs_log(LOG_INFO, "%s", signInWithCustomTokenEndpoint.c_str());
 
