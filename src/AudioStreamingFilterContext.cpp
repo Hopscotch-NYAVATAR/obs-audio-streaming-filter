@@ -147,8 +147,8 @@ void AudioStreamingFilterContext::startedRecording(void)
 	path outputDirectory(recordPathGenerator.getFrontendRecordPath(
 				     obs_frontend_get_profile_config()) /
 			     outputPrefix);
-	opusUploader = std::make_unique<OpusUploader>(OpusUploader(
-		outputDirectory.string(), "opus", outputPrefix, 48000));
+	opusUploader = std::make_unique<OpusUploader>(
+		outputDirectory.string(), "opus", outputPrefix, 48000);
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)

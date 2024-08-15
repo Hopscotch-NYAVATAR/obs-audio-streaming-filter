@@ -19,7 +19,7 @@ class OpusUploader {
 
 	int segmentIndex;
 
-	static std::string
+	static std::filesystem::path
 	generateNextStreamPath(const std::filesystem::path &outputDirectory,
 			       const std::string &outputExt,
 			       const std::string &outputPrefix,
@@ -31,7 +31,7 @@ class OpusUploader {
 			       << std::setw(6) << segmentIndex << "."
 			       << outputExt;
 		const path outputPath = outputDirectory / filenameStream.str();
-		return outputPath.string();
+		return outputPath;
 	}
 
 public:
@@ -42,11 +42,16 @@ public:
 		  outputExt(_outputExt),
 		  outputPrefix(_outputPrefix)
 	{
+    using std::filesystem::path;
+
 		comments = ope_comments_create();
 
-		std::string outputPath(
+		path outputPath(
 			generateNextStreamPath(outputDirectory, outputExt,
 					       outputPrefix, segmentIndex));
+
+    std::filesystem::create_directories(outputPath.parent_path());
+
 		int error;
 		encoder = ope_encoder_create_file(outputPath.c_str(), comments,
 						  sampleRate, 2, 0, &error);
@@ -65,10 +70,14 @@ public:
 
 	bool continueNewStream(void)
 	{
+    using std::filesystem::path;
+
 		segmentIndex += 1;
-		std::string outputPath(
+		path outputPath(
 			generateNextStreamPath(outputDirectory, outputExt,
 					       outputPrefix, segmentIndex));
+    std::filesystem::create_directories(outputPath.parent_path());
+
 		int error = ope_encoder_continue_new_file(
 			encoder, outputPath.c_str(), comments);
 		if (error) {
