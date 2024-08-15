@@ -42,15 +42,15 @@ public:
 		  outputExt(_outputExt),
 		  outputPrefix(_outputPrefix)
 	{
-    using std::filesystem::path;
+		using std::filesystem::path;
 
 		comments = ope_comments_create();
 
-		path outputPath(
-			generateNextStreamPath(outputDirectory, outputExt,
-					       outputPrefix, segmentIndex));
+		path outputPath(generateNextStreamPath(outputDirectory,
+						       outputExt, outputPrefix,
+						       segmentIndex));
 
-    std::filesystem::create_directories(outputPath.parent_path());
+		std::filesystem::create_directories(outputPath.parent_path());
 
 		int error;
 		encoder = ope_encoder_create_file(outputPath.c_str(), comments,
@@ -70,13 +70,13 @@ public:
 
 	bool continueNewStream(void)
 	{
-    using std::filesystem::path;
+		using std::filesystem::path;
 
 		segmentIndex += 1;
-		path outputPath(
-			generateNextStreamPath(outputDirectory, outputExt,
-					       outputPrefix, segmentIndex));
-    std::filesystem::create_directories(outputPath.parent_path());
+		path outputPath(generateNextStreamPath(outputDirectory,
+						       outputExt, outputPrefix,
+						       segmentIndex));
+		std::filesystem::create_directories(outputPath.parent_path());
 
 		int error = ope_encoder_continue_new_file(
 			encoder, outputPath.c_str(), comments);
