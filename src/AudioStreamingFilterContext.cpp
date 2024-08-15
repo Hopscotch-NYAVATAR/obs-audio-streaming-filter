@@ -107,14 +107,6 @@ void AudioStreamingFilterContext::startedRecording(void)
 	const std::string idToken = authClient.getIdToken();
 	obs_log(LOG_INFO, "%s", idToken.c_str());
 
-  authClient.refresh();
-	const std::string idToken2 = authClient.getIdToken();
-	obs_log(LOG_INFO, "%s", idToken2.c_str());
-
-  authClient.refresh();
-	const std::string idToken3 = authClient.getIdToken();
-	obs_log(LOG_INFO, "%s", idToken3.c_str());
-
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());
 	const std::string outputPathString = outputPath.string<char>();

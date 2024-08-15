@@ -54,8 +54,6 @@ try {
 	curlpp::Cleanup cleaner;
 	curlpp::Easy request;
 
-	request.setOpt(new Verbose(true));
-
 	request.setOpt(new Url(signInWithCustomTokenEndpoint));
 
 	nlohmann::json payload{
@@ -81,7 +79,6 @@ try {
 
 	nlohmann::json json;
 	sstream >> json;
-	obs_log(LOG_INFO, "%s", sstream.str().c_str());
 
 	return {
 		true,
@@ -110,13 +107,10 @@ try {
 	curlpp::Cleanup cleaner;
 	curlpp::Easy request;
 
-  request.setOpt(new Verbose(true));
 	request.setOpt(new Url(refreshTokenEndpoint));
 
-	curlpp::Forms formParts;
-	formParts.push_back(new Content("grant_type", "refresh_token"));
-	formParts.push_back(new Content("refresh_token", refreshToken));
-	request.setOpt(new HttpPost(formParts));
+  std::string formData("grant_type=refresh_token&refresh_token=" + refreshToken);
+	request.setOpt(new PostFields(formData));
 
 	std::stringstream sstream;
 	request.setOpt(new WriteStream(&sstream));
@@ -125,8 +119,6 @@ try {
 
 	nlohmann::json json;
 	sstream >> json;
-
-  obs_log(LOG_INFO, sstream.str().c_str());
 
 	return {
 		true,
@@ -185,22 +177,31 @@ bool AuthClient::authenticateWithIndefiniteAccessToken(
 	return true;
 }
 
-void AuthClient::refresh(void)
+bool AuthClient::refresh(void)
 {
 	auto refreshResponse =
 		refreshIdToken(refreshTokenEndpoint, refreshToken);
+  if (!refreshResponse.success) {
+    return false;
+  }
+
 	const uint64_t now = getCurrentEpoch();
 	const uint64_t expiresIn = std::stoull(refreshResponse.expiresIn);
 	expiresAt = now + expiresIn;
 	refreshToken = refreshResponse.refreshToken;
 	idToken = refreshResponse.idToken;
+
+  return true;
 }
 
 std::string AuthClient::getIdToken(void)
 {
 	const uint64_t now = getCurrentEpoch();
 	if (now + refreshBackoff >= expiresAt) {
-		refresh();
+    if (!refresh()) {
+      obs_log(LOG_ERROR, "ID token refresh failed!");
+      return "";
+    }
 	}
 	return idToken;
 }
