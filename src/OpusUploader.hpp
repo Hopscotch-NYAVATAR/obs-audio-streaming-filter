@@ -25,8 +25,6 @@ class OpusUploader {
 	int segmentIndex;
 	std::vector<SegmentEntry> segmentEntries;
 
-	int destinationStart;
-	int destinationCount;
 	std::vector<std::string> destinationURLs;
 
 	AudioRecordClient &audioRecordClient;
@@ -45,6 +43,17 @@ class OpusUploader {
 			       << outputExt;
 		const path outputPath = outputDirectory / filenameStream.str();
 		return outputPath;
+	}
+
+	void loadNewDestinations(int start, int count)
+	{
+		std::string idToken = authClient.getIdToken();
+		const auto result = audioRecordClient.getDestinations(
+			outputExt, outputPrefix, start, count, idToken);
+		destinationCount += count;
+		destinationURLs.insert(destinationURLs.end(),
+				       result.destinations.begin(),
+				       result.destinations.end());
 	}
 
 public:
@@ -111,40 +120,15 @@ public:
 	bool uploadPendingSegments(void)
 	{
 		if (destinationURLs.empty()) {
-			std::string idToken = authClient.getIdToken();
-			const auto destinationResult =
-				audioRecordClient.getDestinations(
-					outputExt, outputPrefix, 0,
-					destinationBatchCount, idToken);
-			destinationStart = destinationResult.start;
-			destinationCount = destinationResult.count;
-			destinationURLs = destinationResult.destinations;
+			loadNewDestinations(0, destinationBatchCount);
 		}
 
 		for (const SegmentEntry &segmentEntry : segmentEntries) {
 			const int &index = segmentEntry.segmentIndex;
-			const int &start = destinationStart;
-			const int &count = destinationCount;
-			const int &batch = destinationBatchCount;
-			const int &backoff = destinationBatchBackoff;
 
-			if (index < start || index >= start + count) {
+			if (index < 0 || index > destinationURLs.size()) {
 				obs_log(LOG_ERROR, "Invalid segment sequence!");
 				return false;
-			}
-
-			if (index + backoff <= start + count) {
-				std::string idToken = authClient.getIdToken();
-				const auto destinationResult =
-					audioRecordClient.getDestinations(
-						outputExt, outputPrefix,
-						start + count, batch, idToken);
-				const auto &newURLs =
-					destinationResult.destinations;
-				destinationCount += destinationResult.count;
-				destinationURLs.insert(destinationURLs.end(),
-						       newURLs.begin(),
-						       newURLs.end());
 			}
 
 			const auto &segmentPath = segmentEntry.segmentPath;
@@ -154,6 +138,12 @@ public:
 			obs_log(LOG_INFO, "Uploading %s to %s",
 				segmentPath.string().c_str(),
 				uploadURL.c_str());
+
+			if (index + destinationBatchBackoff <=
+			    destinationURLs.size()) {
+				loadNewDestinations(destinationURLs.size(),
+						    destinationBatchCount);
+			}
 		}
 
 		return true;
