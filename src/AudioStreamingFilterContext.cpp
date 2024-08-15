@@ -96,9 +96,10 @@ void AudioStreamingFilterContext::startedRecording(void)
 	const auto url = secretURL.substr(0, hashIndex);
 	const auto indefiniteAccessToken = secretURL.substr(hashIndex + 1, -1);
 
-	const auto fetchResponse = fetchCustomToken(url, indefiniteAccessToken);
+	const auto fetchResponse =
+		authClient.fetchCustomToken(url, indefiniteAccessToken);
 
-	const auto exchangeResponse = exchangeCustomToken(
+	const auto exchangeResponse = authClient.exchangeCustomToken(
 		fetchResponse.customToken,
 		fetchResponse.signInWithCustomTokenEndpoint);
 

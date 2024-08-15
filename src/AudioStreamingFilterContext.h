@@ -7,6 +7,7 @@
 #include <obs.h>
 #include <obs-frontend-api.h>
 
+#include "AuthClient.hpp"
 #include "RecordPathGenerator.hpp"
 
 class AudioStreamingFilterContext {
@@ -16,6 +17,7 @@ class AudioStreamingFilterContext {
 	OggOpusComments *comments;
 	std::string secretURL;
 
+	AuthClient authClient;
 	RecordPathGenerator recordPathGenerator;
 
 public:
