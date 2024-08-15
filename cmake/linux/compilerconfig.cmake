@@ -13,6 +13,7 @@ set(_obs_gcc_c_options
     # cmake-format: sortable
     -fno-strict-aliasing
     -fopenmp-simd
+    -Wdeprecated-declarations
     -Wempty-body
     -Wenum-conversion
     -Werror=return-type
@@ -20,8 +21,6 @@ set(_obs_gcc_c_options
     -Wformat
     -Wformat-security
     -Wno-conversion
-    -Wno-deprecated-declarations
-    -Wno-discarded-qualifiers
     -Wno-float-conversion
     -Wno-implicit-fallthrough
     -Wno-missing-braces
@@ -44,7 +43,7 @@ set(_obs_gcc_c_options
 # gcc options for C++
 set(_obs_gcc_cxx_options
     # cmake-format: sortable
-    ${_obs_gcc_c_options} -Wfloat-conversion -Winvalid-offsetof -Wno-conversion -Wno-overloaded-virtual)
+    ${_obs_gcc_c_options} -Wconversion -Wfloat-conversion -Winvalid-offsetof -Wno-overloaded-virtual)
 
 add_compile_options(
   -fopenmp-simd

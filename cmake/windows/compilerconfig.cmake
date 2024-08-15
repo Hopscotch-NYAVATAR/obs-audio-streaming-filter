@@ -49,5 +49,5 @@ add_link_options($<$<NOT:$<CONFIG:Debug>>:/OPT:REF>
 # cmake-format: on
 
 if(CMAKE_COMPILE_WARNING_AS_ERROR)
-  add_link_options(/WX /w04267)
+  add_link_options(/WX)
 endif()
