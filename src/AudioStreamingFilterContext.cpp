@@ -10,6 +10,7 @@
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
+#include <nlohmann/json.hpp>
 
 #include "plugin-support.h"
 
@@ -104,7 +105,16 @@ void AudioStreamingFilterContext::startedRecording(void)
 				       indefiniteAccessToken};
 	request.setOpt<HttpHeader>(headers);
 
-	std::cout << request << std::endl;
+  std::stringstream sstream;
+  request.setOpt<WriteStream>(&sstream);
+
+  request.perform();
+
+  nlohmann::json json;
+  sstream >> json;
+
+  auto customToken = json["customToken"].template get<std::string>();
+  obs_log(LOG_INFO, "customToken %s", customToken.c_str());
 
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());

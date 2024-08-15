@@ -1,8 +1,9 @@
 {
   "dependencies": [
     "curl",
+    "curlpp",
     "libopusenc",
     "opus",
-    "curlpp"
+    "nlohmann-json"
   ]
 }
