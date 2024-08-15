@@ -93,19 +93,27 @@ void AudioStreamingFilterContext::startedRecording(void)
 		return;
 	}
 
-	const auto url = secretURL.substr(0, hashIndex);
+	const auto indefiniteAccessTokenExchangeEndpoint =
+		secretURL.substr(0, hashIndex);
 	const auto indefiniteAccessToken = secretURL.substr(hashIndex + 1, -1);
 
-	const auto fetchResponse =
-		authClient.fetchCustomToken(url, indefiniteAccessToken);
+	if (!authClient.authenticateWithIndefiniteAccessToken(
+		    indefiniteAccessTokenExchangeEndpoint,
+		    indefiniteAccessToken)) {
+		obs_log(LOG_INFO, "Authentication failed!");
+		return;
+	}
 
-	const auto exchangeResponse = authClient.exchangeCustomToken(
-		fetchResponse.customToken,
-		fetchResponse.signInWithCustomTokenEndpoint);
+	const std::string idToken = authClient.getIdToken();
+	obs_log(LOG_INFO, "%s", idToken.c_str());
 
-	obs_log(LOG_INFO, "%s %s %s", exchangeResponse.idToken.c_str(),
-		exchangeResponse.refreshToken.c_str(),
-		exchangeResponse.expiresIn.c_str());
+  authClient.refresh();
+	const std::string idToken2 = authClient.getIdToken();
+	obs_log(LOG_INFO, "%s", idToken2.c_str());
+
+  authClient.refresh();
+	const std::string idToken3 = authClient.getIdToken();
+	obs_log(LOG_INFO, "%s", idToken3.c_str());
 
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());

@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "AuthClient.hpp"
 
 FetchCustomTokenResponse AuthClient::fetchCustomToken(
@@ -26,7 +28,9 @@ try {
 	sstream >> json;
 
 	return {
+		true,
 		json["customToken"].get<std::string>(),
+		json["refreshTokenEndpoint"].get<std::string>(),
 		json["signInWithCustomTokenEndpoint"].get<std::string>(),
 	};
 } catch (curlpp::LogicError &e) {
@@ -80,6 +84,7 @@ try {
 	obs_log(LOG_INFO, "%s", sstream.str().c_str());
 
 	return {
+		true,
 		json["idToken"].get<std::string>(),
 		json["refreshToken"].get<std::string>(),
 		json["expiresIn"].get<std::string>(),
@@ -93,4 +98,109 @@ try {
 } catch (nlohmann::json::exception &e) {
 	obs_log(LOG_WARNING, e.what());
 	return {};
+}
+
+RefreshIdTokenReponse
+AuthClient::refreshIdToken(const std::string &refreshTokenEndpoint,
+			   const std::string refreshToken) const
+try {
+	using namespace curlpp::options;
+	using curlpp::FormParts::Content;
+
+	curlpp::Cleanup cleaner;
+	curlpp::Easy request;
+
+  request.setOpt(new Verbose(true));
+	request.setOpt(new Url(refreshTokenEndpoint));
+
+	curlpp::Forms formParts;
+	formParts.push_back(new Content("grant_type", "refresh_token"));
+	formParts.push_back(new Content("refresh_token", refreshToken));
+	request.setOpt(new HttpPost(formParts));
+
+	std::stringstream sstream;
+	request.setOpt(new WriteStream(&sstream));
+
+	request.perform();
+
+	nlohmann::json json;
+	sstream >> json;
+
+  obs_log(LOG_INFO, sstream.str().c_str());
+
+	return {
+		true,
+		json["expires_in"].get<std::string>(),
+		json["token_type"].get<std::string>(),
+		json["refresh_token"].get<std::string>(),
+		json["id_token"].get<std::string>(),
+		json["user_id"].get<std::string>(),
+		json["project_id"].get<std::string>(),
+	};
+} catch (curlpp::LogicError &e) {
+	obs_log(LOG_WARNING, e.what());
+	return {};
+} catch (curlpp::RuntimeError &e) {
+	obs_log(LOG_WARNING, e.what());
+	return {};
+} catch (nlohmann::json::exception &e) {
+	obs_log(LOG_WARNING, e.what());
+	return {};
+}
+
+static uint64_t getCurrentEpoch()
+{
+	using namespace std::chrono;
+	const system_clock::time_point now = system_clock::now();
+	const seconds s = duration_cast<seconds>(now.time_since_epoch());
+	return s.count();
+}
+
+bool AuthClient::authenticateWithIndefiniteAccessToken(
+	const std::string &indefiniteAccessTokenExchangeEndpoint,
+	const std::string &indefiniteAccessToken)
+{
+	auto fetchResponse = fetchCustomToken(
+		indefiniteAccessTokenExchangeEndpoint, indefiniteAccessToken);
+	refreshTokenEndpoint = fetchResponse.refreshTokenEndpoint;
+
+	if (!fetchResponse.success) {
+		return false;
+	}
+
+	auto exchangeResponse = exchangeCustomToken(
+		fetchResponse.customToken,
+		fetchResponse.signInWithCustomTokenEndpoint);
+
+	if (!exchangeResponse.success) {
+		return false;
+	}
+
+	idToken = exchangeResponse.idToken;
+	refreshToken = exchangeResponse.refreshToken;
+	const uint64_t now = getCurrentEpoch();
+	const uint64_t expiresIn = std::stoull(exchangeResponse.expiresIn);
+	expiresAt = now + expiresIn;
+
+	return true;
+}
+
+void AuthClient::refresh(void)
+{
+	auto refreshResponse =
+		refreshIdToken(refreshTokenEndpoint, refreshToken);
+	const uint64_t now = getCurrentEpoch();
+	const uint64_t expiresIn = std::stoull(refreshResponse.expiresIn);
+	expiresAt = now + expiresIn;
+	refreshToken = refreshResponse.refreshToken;
+	idToken = refreshResponse.idToken;
+}
+
+std::string AuthClient::getIdToken(void)
+{
+	const uint64_t now = getCurrentEpoch();
+	if (now + refreshBackoff >= expiresAt) {
+		refresh();
+	}
+	return idToken;
 }
