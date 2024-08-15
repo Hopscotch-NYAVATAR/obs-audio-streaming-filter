@@ -55,8 +55,8 @@ public:
 		const std::string &signInWithCustomTokenEndpoint) const;
 
 	RefreshIdTokenReponse
-	refreshIdToken(const std::string &refreshTokenEndpoint,
-		       const std::string refreshToken) const;
+	refreshIdToken(const std::string &_refreshTokenEndpoint,
+		       const std::string _refreshToken) const;
 
 	bool refresh(void);
 

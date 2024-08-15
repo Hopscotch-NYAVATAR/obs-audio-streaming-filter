@@ -96,8 +96,8 @@ try {
 }
 
 RefreshIdTokenReponse
-AuthClient::refreshIdToken(const std::string &refreshTokenEndpoint,
-			   const std::string refreshToken) const
+AuthClient::refreshIdToken(const std::string &_refreshTokenEndpoint,
+			   const std::string _refreshToken) const
 try {
 	using namespace curlpp::options;
 	using curlpp::FormParts::Content;
@@ -105,10 +105,10 @@ try {
 	curlpp::Cleanup cleaner;
 	curlpp::Easy request;
 
-	request.setOpt(new Url(refreshTokenEndpoint));
+	request.setOpt(new Url(_refreshTokenEndpoint));
 
 	std::string formData("grant_type=refresh_token&refresh_token=" +
-			     refreshToken);
+			     _refreshToken);
 	request.setOpt(new PostFields(formData));
 
 	std::stringstream sstream;
