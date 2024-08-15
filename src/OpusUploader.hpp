@@ -75,7 +75,7 @@ class OpusUploader {
       md5.add(buf, ifs.gcount());
 		}
 
-    char digest[MD5::HashBytes];
+    unsigned char digest[MD5::HashBytes];
     md5.getHash(digest);
     std::vector<unsigned char> digestVector(digest, digest + sizeof(digest));
     return Base64::encode(digestVector);
