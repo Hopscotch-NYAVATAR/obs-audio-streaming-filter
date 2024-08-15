@@ -29,9 +29,12 @@ try {
 
 	return {
 		true,
-		json["customToken"].get<std::string>(),
-		json["refreshTokenEndpoint"].get<std::string>(),
-		json["signInWithCustomTokenEndpoint"].get<std::string>(),
+		json["batchIssueAudioRecordUploadDestinationEndpoint"]
+			.template get<std::string>(),
+		json["customToken"].template get<std::string>(),
+		json["refreshTokenEndpoint"].template get<std::string>(),
+		json["signInWithCustomTokenEndpoint"]
+			.template get<std::string>(),
 	};
 } catch (curlpp::LogicError &e) {
 	obs_log(LOG_WARNING, e.what());
@@ -147,7 +150,8 @@ static uint64_t getCurrentEpoch()
 	return s.count();
 }
 
-bool AuthClient::authenticateWithIndefiniteAccessToken(
+AuthenticatAuthClienteWithIndefiniteAccessTokenResult
+AuthClient::authenticateWithIndefiniteAccessToken(
 	const std::string &indefiniteAccessTokenExchangeEndpoint,
 	const std::string &indefiniteAccessToken)
 {
@@ -156,7 +160,7 @@ bool AuthClient::authenticateWithIndefiniteAccessToken(
 	refreshTokenEndpoint = fetchResponse.refreshTokenEndpoint;
 
 	if (!fetchResponse.success) {
-		return false;
+		return {};
 	}
 
 	auto exchangeResponse = exchangeCustomToken(
@@ -164,7 +168,7 @@ bool AuthClient::authenticateWithIndefiniteAccessToken(
 		fetchResponse.signInWithCustomTokenEndpoint);
 
 	if (!exchangeResponse.success) {
-		return false;
+		return {};
 	}
 
 	idToken = exchangeResponse.idToken;
@@ -173,7 +177,10 @@ bool AuthClient::authenticateWithIndefiniteAccessToken(
 	const uint64_t expiresIn = std::stoull(exchangeResponse.expiresIn);
 	expiresAt = now + expiresIn;
 
-	return true;
+	return {
+		true,
+		fetchResponse.batchIssueAudioRecordUploadDestinationEndpoint,
+	};
 }
 
 bool AuthClient::refresh(void)

@@ -15,6 +15,7 @@
 
 struct FetchCustomTokenResponse {
 	const bool success;
+	const std::string batchIssueAudioRecordUploadDestinationEndpoint;
 	const std::string customToken;
 	const std::string refreshTokenEndpoint;
 	const std::string signInWithCustomTokenEndpoint;
@@ -35,6 +36,11 @@ struct RefreshIdTokenReponse {
 	const std::string idToken;
 	const std::string userId;
 	const std::string projectID;
+};
+
+struct AuthenticatAuthClienteWithIndefiniteAccessTokenResult {
+	const bool success;
+	const std::string batchIssueAudioRecordUploadDestinationEndpoint;
 };
 
 class AuthClient {
@@ -60,7 +66,8 @@ public:
 
 	bool refresh(void);
 
-	bool authenticateWithIndefiniteAccessToken(
+	AuthenticatAuthClienteWithIndefiniteAccessTokenResult
+	authenticateWithIndefiniteAccessToken(
 		const std::string &indefiniteAccessTokenExchangeEndpoint,
 		const std::string &indefiniteAccessToken);
 
