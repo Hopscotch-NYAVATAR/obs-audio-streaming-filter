@@ -10,7 +10,6 @@
 #include "RecordPathGenerator.hpp"
 
 class AudioStreamingFilterContext {
-	const obs_data_t *settings;
 	const obs_source_t *source;
 
 	OggOpusEnc *enc;
@@ -20,7 +19,7 @@ class AudioStreamingFilterContext {
 	RecordPathGenerator recordPathGenerator;
 
 public:
-	AudioStreamingFilterContext(obs_data_t *_settings,
+	AudioStreamingFilterContext(obs_data_t *settings,
 				    obs_source_t *_source);
 	~AudioStreamingFilterContext(void);
 	obs_properties_t *getProperties(void);

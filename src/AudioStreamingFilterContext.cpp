@@ -21,13 +21,12 @@ static void handleFrontendEventCallback(obs_frontend_event event,
 	self->handleFrontendEvent(event);
 }
 
-AudioStreamingFilterContext::AudioStreamingFilterContext(obs_data_t *_settings,
+AudioStreamingFilterContext::AudioStreamingFilterContext(obs_data_t *settings,
 							 obs_source_t *_source)
-	: settings(_settings),
-	  source(_source)
+	: source(_source)
 {
 	obs_frontend_add_event_callback(handleFrontendEventCallback, this);
-	update(_settings);
+	update(settings);
 }
 
 AudioStreamingFilterContext::~AudioStreamingFilterContext(void)
