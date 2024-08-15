@@ -104,6 +104,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::lib
 target_sources(
   ${CMAKE_PROJECT_NAME}
   PRIVATE src/RecordPathGenerator.hpp
+          src/AudioRecordClient.cpp
+          src/AudioRecordClient.hpp
           src/AudioStreamingFilterContext.h
           src/AudioStreamingFilterContext.cpp
           src/AuthClient.cpp

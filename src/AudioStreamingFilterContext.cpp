@@ -97,15 +97,23 @@ void AudioStreamingFilterContext::startedRecording(void)
 		secretURL.substr(0, hashIndex);
 	const auto indefiniteAccessToken = secretURL.substr(hashIndex + 1, -1);
 
-	if (!authClient.authenticateWithIndefiniteAccessToken(
-		    indefiniteAccessTokenExchangeEndpoint,
-		    indefiniteAccessToken)) {
+	const auto authenticateResult =
+		authClient.authenticateWithIndefiniteAccessToken(
+			indefiniteAccessTokenExchangeEndpoint,
+			indefiniteAccessToken);
+	if (!authenticateResult.success) {
 		obs_log(LOG_INFO, "Authentication failed!");
 		return;
 	}
 
+	audioRecordClient.init(
+		authenticateResult
+			.batchIssueAudioRecordUploadDestinationEndpoint);
+
 	const std::string idToken = authClient.getIdToken();
-	obs_log(LOG_INFO, "%s", idToken.c_str());
+	const auto uploadResponse = audioRecordClient.batchGetUploadDestination(
+		idToken, 0, 5, "test");
+	obs_log(LOG_INFO, "%s", uploadResponse.destinations[0].c_str());
 
 	const std::filesystem::path outputPath =
 		recordPathGenerator(obs_frontend_get_profile_config());
