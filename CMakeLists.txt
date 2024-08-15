@@ -94,9 +94,9 @@ endif()
 
 find_package(CURL REQUIRED)
 
-find_package(curlpp REQUIRED)
+find_package(Curlpp REQUIRED)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl Curlpp::curlpp)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
