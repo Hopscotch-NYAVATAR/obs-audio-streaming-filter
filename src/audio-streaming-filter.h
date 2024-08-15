@@ -9,7 +9,9 @@ extern "C" {
 const char *audio_streaming_filter_get_name(void *unused);
 void *audio_streaming_filter_create(obs_data_t *settings, obs_source_t *source);
 void audio_streaming_filter_destroy(void *data);
-void audio_streaming_filter_filter_audio(void *data);
+void audio_streaming_filter_get_defaults(obs_data_t *settings);
+obs_properties_t *audio_streaming_filter_get_properties(void *data);
+void audio_streaming_filter_update(void *data, obs_data_t *settings);
 struct obs_source_frame *
 audio_streaming_filter_video(void *data, struct obs_source_frame *frame);
 struct obs_audio_data *

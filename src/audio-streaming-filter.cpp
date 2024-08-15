@@ -28,11 +28,23 @@ void audio_streaming_filter_destroy(void *data)
 	return;
 }
 
-obs_properties_t *audio_streaming_filter_get_destroy(void *data)
+void audio_streaming_filter_get_defaults(obs_data_t *settings)
+{
+	UNUSED_PARAMETER(settings);
+}
+
+obs_properties_t *audio_streaming_filter_get_properties(void *data)
 {
 	AudioStreamingFilterContext *context =
 		reinterpret_cast<AudioStreamingFilterContext *>(data);
 	return context->getProperties();
+}
+
+void audio_streaming_filter_update(void *data, obs_data_t *settings)
+{
+	AudioStreamingFilterContext *context =
+		reinterpret_cast<AudioStreamingFilterContext *>(data);
+	context->update(settings);
 }
 
 obs_source_frame *audio_streaming_filter_video(void *data,
