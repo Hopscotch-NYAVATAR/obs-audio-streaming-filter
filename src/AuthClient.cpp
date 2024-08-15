@@ -64,8 +64,6 @@ try {
 	request.setOpt(new PostFields(payloadString));
 	request.setOpt(
 		new PostFieldSize(static_cast<long>(payloadString.size())));
-	obs_log(LOG_INFO, "%s", payloadString.c_str());
-	obs_log(LOG_INFO, "%s", signInWithCustomTokenEndpoint.c_str());
 
 	std::list<std::string> headers{
 		"Content-Type: application/json",
@@ -109,7 +107,8 @@ try {
 
 	request.setOpt(new Url(refreshTokenEndpoint));
 
-  std::string formData("grant_type=refresh_token&refresh_token=" + refreshToken);
+	std::string formData("grant_type=refresh_token&refresh_token=" +
+			     refreshToken);
 	request.setOpt(new PostFields(formData));
 
 	std::stringstream sstream;
@@ -181,9 +180,9 @@ bool AuthClient::refresh(void)
 {
 	auto refreshResponse =
 		refreshIdToken(refreshTokenEndpoint, refreshToken);
-  if (!refreshResponse.success) {
-    return false;
-  }
+	if (!refreshResponse.success) {
+		return false;
+	}
 
 	const uint64_t now = getCurrentEpoch();
 	const uint64_t expiresIn = std::stoull(refreshResponse.expiresIn);
@@ -191,17 +190,17 @@ bool AuthClient::refresh(void)
 	refreshToken = refreshResponse.refreshToken;
 	idToken = refreshResponse.idToken;
 
-  return true;
+	return true;
 }
 
 std::string AuthClient::getIdToken(void)
 {
 	const uint64_t now = getCurrentEpoch();
 	if (now + refreshBackoff >= expiresAt) {
-    if (!refresh()) {
-      obs_log(LOG_ERROR, "ID token refresh failed!");
-      return "";
-    }
+		if (!refresh()) {
+			obs_log(LOG_ERROR, "ID token refresh failed!");
+			return "";
+		}
 	}
 	return idToken;
 }
