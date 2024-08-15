@@ -3,7 +3,9 @@
 #include <vector>
 #include <stdint.h>
 
+#include <obs-module.h>
 #include <obs-frontend-api.h>
+#include <curlpp/cURLpp.hpp>
 
 #include "plugin-support.h"
 
@@ -31,7 +33,14 @@ AudioStreamingFilterContext::~AudioStreamingFilterContext(void)
 obs_properties_t *AudioStreamingFilterContext::getProperties(void)
 {
 	obs_properties_t *props = obs_properties_create();
+	obs_properties_add_text(props, "secret_url",
+				obs_module_text("SecretURL"), OBS_TEXT_DEFAULT);
 	return props;
+}
+
+void AudioStreamingFilterContext::update(obs_data_t *settings)
+{
+	secretURL = obs_data_get_string(settings, "secret_url");
 }
 
 obs_source_frame *

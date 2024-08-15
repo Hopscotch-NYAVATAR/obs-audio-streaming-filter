@@ -7,6 +7,7 @@ struct obs_source_info audio_streaming_filter_info = {
 	.get_name = audio_streaming_filter_get_name,
 	.create = audio_streaming_filter_create,
 	.destroy = audio_streaming_filter_destroy,
+	.get_properties = audio_streaming_filter_get_properties,
 	.filter_video = audio_streaming_filter_video,
 	.filter_audio = audio_streaming_filter_audio,
 };
