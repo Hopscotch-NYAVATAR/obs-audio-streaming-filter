@@ -53,8 +53,9 @@ public:
 		std::filesystem::create_directories(outputPath.parent_path());
 
 		int error;
-		encoder = ope_encoder_create_file(outputPath.c_str(), comments,
-						  sampleRate, 2, 0, &error);
+		encoder = ope_encoder_create_file(outputPath.string().c_str(),
+						  comments, sampleRate, 2, 0,
+						  &error);
 		if (!encoder) {
 			obs_log(LOG_ERROR, "%s", ope_strerror(error));
 			return;
@@ -79,7 +80,7 @@ public:
 		std::filesystem::create_directories(outputPath.parent_path());
 
 		int error = ope_encoder_continue_new_file(
-			encoder, outputPath.c_str(), comments);
+			encoder, outputPath.string().c_str(), comments);
 		if (error) {
 			obs_log(LOG_ERROR, "%s", ope_strerror(error));
 			return false;
