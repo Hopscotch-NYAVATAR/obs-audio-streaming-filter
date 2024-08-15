@@ -94,11 +94,9 @@ endif()
 
 find_package(CURL REQUIRED)
 
-find_package(PkgConfig)
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}")
-pkg_search_modules(curlpp REQUIRED IMPORTED_TARGET curlpp)
+find_package(curlpp REQUIRED)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl PkgConfig::curlpp)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
