@@ -98,8 +98,12 @@ find_package(Curlpp REQUIRED)
 
 find_package(nlohmann_json CONFIG REQUIRED PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET})
 
+find_package(Hashlibrary REQUIRED)
+
+list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}")
+
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Opus::opus Opusenc CURL::libcurl Curlpp::curlpp
-                                                    nlohmann_json::nlohmann_json)
+                                                    nlohmann_json::nlohmann_json Hashlibrary::hashlibrary)
 
 target_sources(
   ${CMAKE_PROJECT_NAME}
@@ -110,6 +114,7 @@ target_sources(
           src/AudioStreamingFilterContext.cpp
           src/AuthClient.cpp
           src/AuthClient.hpp
+          src/Base64.hpp
           src/OpusUploader.hpp
           src/audio-streaming-filter.h
           src/audio-streaming-filter.cpp

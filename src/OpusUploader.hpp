@@ -4,10 +4,13 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 
 #include <opusenc.h>
+#include <hash-library/md5.h>
 
 #include "AudioRecordClient.hpp"
+#include "Base64.hpp"
 
 struct SegmentEntry {
 	int segmentIndex;
@@ -54,6 +57,72 @@ class OpusUploader {
 		destinationURLs.insert(destinationURLs.end(),
 				       result.destinations.begin(),
 				       result.destinations.end());
+	}
+
+	static bool isLittleEndian()
+	{
+		int i = 1;
+		return *((char *)&i) == 1;
+	}
+
+	std::string calculateMD5Hash(std::filesystem::path path) const
+	{
+    MD5 md5;
+		std::ifstream ifs(path, std::ios::binary);
+    char buf[8192];
+		while (!ifs.eof()) {
+			ifs.read(buf, sizeof(buf));
+      md5.add(buf, ifs.gcount());
+		}
+
+    char digest[MD5::HashBytes];
+    md5.getHash(digest);
+    std::vector<unsigned char> digestVector(digest, digest + sizeof(digest));
+    return Base64::encode(digestVector);
+	}
+
+	bool uploadSegment(const std::filesystem::path &segmentPath,
+			   const std::string &destinationURL) const
+	try {
+		using namespace curlpp::options;
+
+		curlpp::Cleanup cleaner;
+		curlpp::Easy request;
+
+		request.setOpt(new Verbose(true));
+		request.setOpt(new Url(destinationURL));
+		request.setOpt(new Put(true));
+
+		std::ifstream ifs(segmentPath, std::ios::binary);
+		const auto fileSize = std::filesystem::file_size(segmentPath);
+		request.setOpt(new ReadStream(&ifs));
+		request.setOpt(new InfileSize(fileSize));
+		request.setOpt(new Upload(true));
+
+		std::list<std::string> headers{
+			"Content-Length: " + std::to_string(fileSize),
+			"Content-Type: audio/opus",
+      "Content-MD5: " + calculateMD5Hash(segmentPath),
+		};
+		request.setOpt(new HttpHeader(headers));
+
+		std::ostringstream oss;
+		request.setOpt(new WriteStream(&oss));
+
+		request.perform();
+
+		obs_log(LOG_INFO, "%s", oss.str().c_str());
+
+		return true;
+	} catch (curlpp::LogicError &e) {
+		obs_log(LOG_WARNING, e.what());
+		return false;
+	} catch (curlpp::RuntimeError &e) {
+		obs_log(LOG_WARNING, e.what());
+		return false;
+	} catch (nlohmann::json::exception &e) {
+		obs_log(LOG_WARNING, e.what());
+		return false;
 	}
 
 public:
@@ -120,11 +189,16 @@ public:
 
 	bool uploadPendingSegments(void)
 	{
+		if (segmentEntries.empty()) {
+			return true;
+		}
+
 		if (destinationURLs.empty()) {
 			loadNewDestinations(0, destinationBatchCount);
 		}
 
-		for (const SegmentEntry &segmentEntry : segmentEntries) {
+		for (size_t i = 0; i < segmentEntries.size() - 1; i++) {
+			const SegmentEntry &segmentEntry = segmentEntries[i];
 			const int &index = segmentEntry.segmentIndex;
 			const int count =
 				static_cast<int>(destinationURLs.size());
@@ -137,9 +211,8 @@ public:
 			const auto &segmentPath = segmentEntry.segmentPath;
 			const auto &uploadURL =
 				destinationURLs[segmentEntry.segmentIndex];
-			obs_log(LOG_INFO, "Uploading %s to %s",
-				segmentPath.string().c_str(),
-				uploadURL.c_str());
+
+			uploadSegment(segmentPath, uploadURL);
 
 			if (index + destinationBatchBackoff >= count) {
 				loadNewDestinations(count,
@@ -147,7 +220,8 @@ public:
 			}
 		}
 
-		segmentEntries.clear();
+		segmentEntries.erase(segmentEntries.begin(),
+				     segmentEntries.end() - 1);
 
 		return true;
 	}

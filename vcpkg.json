@@ -3,7 +3,8 @@
     "curl",
     "curlpp",
     "libopusenc",
+    "nlohmann-json",
     "opus",
-    "nlohmann-json"
+    "hash-library"
   ]
 }
