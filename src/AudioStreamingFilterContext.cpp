@@ -103,22 +103,9 @@ void AudioStreamingFilterContext::startedRecording(void)
 		return;
 	}
 
-	const auto indefiniteAccessTokenExchangeEndpoint =
+	const auto exchangeIndefiniteAccessTokenEndpoint =
 		secretURL.substr(0, hashIndex);
 	const auto indefiniteAccessToken = secretURL.substr(hashIndex + 1, -1);
-
-	const auto authenticateResult =
-		authClient.authenticateWithIndefiniteAccessToken(
-			indefiniteAccessTokenExchangeEndpoint,
-			indefiniteAccessToken);
-	if (!authenticateResult.success) {
-		obs_log(LOG_INFO, "Authentication failed!");
-		return;
-	}
-
-	audioRecordClient.init(
-		authenticateResult
-			.batchIssueAudioRecordUploadDestinationEndpoint);
 
 	using namespace std::chrono;
 	std::ostringstream prefixStream;
@@ -131,10 +118,9 @@ void AudioStreamingFilterContext::startedRecording(void)
 	path outputDirectory(recordPathGenerator.getFrontendRecordPath(
 				     obs_frontend_get_profile_config()) /
 			     outputPrefix);
-	opusUploader = std::make_unique<OpusUploader>(outputDirectory.string(),
-						      "opus", outputPrefix,
-						      48000, audioRecordClient,
-						      authClient);
+	opusUploader = std::make_unique<OpusUploader>(
+		exchangeIndefiniteAccessTokenEndpoint, indefiniteAccessToken,
+		outputDirectory.string(), "opus", outputPrefix, 48000);
 }
 
 void AudioStreamingFilterContext::stoppedRecording(void)

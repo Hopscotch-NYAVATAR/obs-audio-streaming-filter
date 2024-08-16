@@ -57,8 +57,6 @@ try {
 	request.setOpt(new WriteStream(&oss));
 
 	request.perform();
-
-	obs_log(LOG_INFO, "%s", oss.str().c_str());
 } catch (curlpp::LogicError &e) {
 	obs_log(LOG_WARNING, e.what());
 } catch (curlpp::RuntimeError &e) {
@@ -69,11 +67,13 @@ try {
 } // namespace
 
 OpusUploaderThreadFunctor::OpusUploaderThreadFunctor(
-	AuthClient &_authClient, const AudioRecordClient &_audioRecordClient,
+	const std::string &_exchangeIndefiniteAccessTokenEndpoint,
+	const std::string &_indefiniteAccessToken,
 	const std::filesystem::path &_outputDirectory,
 	const std::string &_outputExt, const std::string &_outputPrefix)
-	: authClient(_authClient),
-	  audioRecordClient(_audioRecordClient),
+	: exchangeIndefiniteAccessTokenEndpoint(
+		  _exchangeIndefiniteAccessTokenEndpoint),
+	  indefiniteAccessToken(_indefiniteAccessToken),
 	  outputDirectory(_outputDirectory),
 	  outputExt(_outputExt),
 	  outputPrefix(_outputPrefix)
@@ -84,10 +84,27 @@ void OpusUploaderThreadFunctor::operator()(void)
 {
 	using namespace std::chrono;
 
+	const auto authenticateResult =
+		authClient.authenticateWithIndefiniteAccessToken(
+			exchangeIndefiniteAccessTokenEndpoint,
+			indefiniteAccessToken);
+	if (!authenticateResult.success) {
+		obs_log(LOG_INFO, "Authentication failed!");
+		return;
+	}
+
+  obs_log(LOG_INFO, "Sign in succeeded.");
+
+	audioRecordClient.init(
+		authenticateResult
+			.batchIssueAudioRecordUploadDestinationEndpoint);
+
 	while (!isStopping) {
 		std::this_thread::sleep_for(seconds(1));
 		uploadPendingSegments();
 	}
+  std::this_thread::sleep_for(seconds(1));
+  uploadPendingSegments();
 }
 
 void OpusUploaderThreadFunctor::addSegmentEntry(const SegmentEntry &segmentEntry)
@@ -126,6 +143,7 @@ void OpusUploaderThreadFunctor::uploadPendingSegments(void)
 			destinationURLs[segmentEntry.segmentIndex];
 
 		uploadSegment(segmentPath, uploadURL);
+    obs_log(LOG_INFO, "%s was uploaded.", segmentPath.filename().string().c_str());
 
 		if (index + destinationBatchBackoff >= count) {
 			loadNewDestinations(count, destinationBatchCount);
@@ -143,6 +161,8 @@ void OpusUploaderThreadFunctor::loadNewDestinations(int start, int count)
 	destinationURLs.insert(destinationURLs.end(),
 			       result.destinations.begin(),
 			       result.destinations.end());
+
+  obs_log(LOG_INFO, "Got %d signed URLs.", count);
 }
 
 std::filesystem::path
@@ -158,16 +178,18 @@ generateNextStreamPath(const std::filesystem::path &outputDirectory,
 	return outputPath;
 }
 
-OpusUploader::OpusUploader(const std::filesystem::path &_outputDirectory,
-			   const std::string &_outputExt,
-			   const std::string &_outputPrefix, int sampleRate,
-			   const AudioRecordClient &_audioRecordClient,
-			   AuthClient &_authClient)
+OpusUploader::OpusUploader(
+	const std::string &_exchangeIndefiniteAccessTokenEndpoint,
+	const std::string &_indefiniteAccessToken,
+	const std::filesystem::path &_outputDirectory,
+	const std::string &_outputExt, const std::string &_outputPrefix,
+	int sampleRate)
 	: outputDirectory(_outputDirectory),
 	  outputExt(_outputExt),
 	  outputPrefix(_outputPrefix),
-	  uploadFunctor(_authClient, _audioRecordClient, _outputDirectory,
-			_outputExt, _outputPrefix)
+	  uploadFunctor(_exchangeIndefiniteAccessTokenEndpoint,
+			_indefiniteAccessToken, _outputDirectory, _outputExt,
+			_outputPrefix)
 {
 	using std::filesystem::path;
 
@@ -192,10 +214,11 @@ OpusUploader::OpusUploader(const std::filesystem::path &_outputDirectory,
 
 OpusUploader::~OpusUploader(void)
 {
-	uploadFunctor.isStopping = true;
 	ope_encoder_drain(encoder);
 	ope_encoder_destroy(encoder);
 	ope_comments_destroy(comments);
+  uploadFunctor.addSegmentEntry(ongoingSegment);
+  uploadFunctor.isStopping = true;
 }
 
 bool OpusUploader::continueNewStream(void)

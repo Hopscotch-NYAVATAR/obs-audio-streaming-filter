@@ -16,12 +16,14 @@ struct SegmentEntry {
 };
 
 class OpusUploaderThreadFunctor {
-	AuthClient &authClient;
-	const AudioRecordClient &audioRecordClient;
+	const std::string exchangeIndefiniteAccessTokenEndpoint;
+	const std::string indefiniteAccessToken;
+	const std::filesystem::path outputDirectory;
+	const std::string outputExt;
+	const std::string outputPrefix;
 
-	const std::filesystem::path &outputDirectory;
-	const std::string &outputExt;
-	const std::string &outputPrefix;
+	AuthClient authClient;
+  AudioRecordClient audioRecordClient;
 
 	std::mutex segmentEntriesMutex;
 	std::vector<SegmentEntry> segmentEntries;
@@ -32,13 +34,13 @@ public:
 	int destinationBatchCount = 200;
 	int destinationBatchBackoff = 100;
 
-  std::atomic_bool isStopping;
+	std::atomic_bool isStopping;
 
-	OpusUploaderThreadFunctor(AuthClient &authClient,
-				  const AudioRecordClient &audioRecordClient,
-				  const std::filesystem::path &outputDirectory,
-				  const std::string &outputExt,
-				  const std::string &outputPrefix);
+	OpusUploaderThreadFunctor(
+		const std::string &exchangeIndefiniteAccessTokenEndpoint,
+		const std::string &indefiniteAccessToken,
+		const std::filesystem::path &outputDirectory,
+		const std::string &outputExt, const std::string &outputPrefix);
 	void operator()(void);
 	void addSegmentEntry(const SegmentEntry &segmentEntry);
 
@@ -60,11 +62,11 @@ class OpusUploader {
 	OpusUploaderThreadFunctor uploadFunctor;
 
 public:
-	OpusUploader(const std::filesystem::path &outputDirectory,
+	OpusUploader(const std::string &indefiniteAccessTokenEndpoint,
+		     const std::string &indefiniteAccessToken,
+		     const std::filesystem::path &outputDirectory,
 		     const std::string &outputExt,
-		     const std::string &outputPrefix, int sampleRate,
-		     const AudioRecordClient &audioRecordClient,
-		     AuthClient &authClient);
+		     const std::string &outputPrefix, int sampleRate);
 	~OpusUploader(void);
 	bool continueNewStream(void);
 	void uploadPendingSegments(void);
