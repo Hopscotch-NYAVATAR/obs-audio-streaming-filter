@@ -67,18 +67,19 @@ class OpusUploader {
 
 	std::string calculateMD5Hash(std::filesystem::path path) const
 	{
-    MD5 md5;
+		MD5 md5;
 		std::ifstream ifs(path, std::ios::binary);
-    char buf[8192];
+		char buf[8192];
 		while (!ifs.eof()) {
 			ifs.read(buf, sizeof(buf));
-      md5.add(buf, ifs.gcount());
+			md5.add(buf, ifs.gcount());
 		}
 
-    unsigned char digest[MD5::HashBytes];
-    md5.getHash(digest);
-    std::vector<unsigned char> digestVector(digest, digest + sizeof(digest));
-    return Base64::encode(digestVector);
+		unsigned char digest[MD5::HashBytes];
+		md5.getHash(digest);
+		std::vector<unsigned char> digestVector(
+			digest, digest + sizeof(digest));
+		return Base64::encode(digestVector);
 	}
 
 	bool uploadSegment(const std::filesystem::path &segmentPath,
@@ -102,7 +103,7 @@ class OpusUploader {
 		std::list<std::string> headers{
 			"Content-Length: " + std::to_string(fileSize),
 			"Content-Type: audio/opus",
-      "Content-MD5: " + calculateMD5Hash(segmentPath),
+			"Content-MD5: " + calculateMD5Hash(segmentPath),
 		};
 		request.setOpt(new HttpHeader(headers));
 
