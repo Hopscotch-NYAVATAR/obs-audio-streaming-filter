@@ -95,7 +95,8 @@ class OpusUploader {
 		request.setOpt(new Put(true));
 
 		std::ifstream ifs(segmentPath, std::ios::binary);
-		const int fileSize = static_cast<int>(std::filesystem::file_size(segmentPath));
+		const int fileSize = static_cast<int>(
+			std::filesystem::file_size(segmentPath));
 		request.setOpt(new ReadStream(&ifs));
 		request.setOpt(new InfileSize(fileSize));
 		request.setOpt(new Upload(true));
