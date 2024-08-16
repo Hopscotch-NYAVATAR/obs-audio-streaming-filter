@@ -4,17 +4,17 @@
 #include <vector>
 
 struct BatchGetAudioRecordUploadDestinationResponse {
-	const bool success;
-	const std::vector<std::string> destinations;
+	bool success;
+	std::vector<std::string> destinations;
 };
 
 struct GetAudioRecordDestinationsResult {
-	const bool success;
-	const std::string ext;
-	const std::string prefix;
-	const int start;
-	const int count;
-	const std::vector<std::string> destinations;
+	bool success;
+	std::string ext;
+	std::string prefix;
+	int start;
+	int count;
+	std::vector<std::string> destinations;
 };
 
 class AudioRecordClient {

@@ -22,25 +22,25 @@ struct FetchCustomTokenResponse {
 };
 
 struct ExchangeCustomTokenResponse {
-	const bool success;
-	const std::string idToken;
-	const std::string refreshToken;
-	const std::string expiresIn;
+	bool success;
+	std::string idToken;
+	std::string refreshToken;
+	std::string expiresIn;
 };
 
 struct RefreshIdTokenReponse {
-	const bool success;
-	const std::string expiresIn;
-	const std::string tokenType;
-	const std::string refreshToken;
-	const std::string idToken;
-	const std::string userId;
-	const std::string projectID;
+	bool success;
+	std::string expiresIn;
+	std::string tokenType;
+	std::string refreshToken;
+	std::string idToken;
+	std::string userId;
+	std::string projectID;
 };
 
 struct AuthenticatAuthClienteWithIndefiniteAccessTokenResult {
-	const bool success;
-	const std::string batchIssueAudioRecordUploadDestinationEndpoint;
+	bool success;
+	std::string batchIssueAudioRecordUploadDestinationEndpoint;
 };
 
 class AuthClient {
