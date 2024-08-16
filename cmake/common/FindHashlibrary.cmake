@@ -6,7 +6,7 @@ find_library(
   NO_DEFAULT_PATH)
 
 find_library(
-  HASHLIBRARY_LIBRARIES_DEBUG hash-libray
+  HASHLIBRARY_LIBRARIES_DEBUG hash-library
   PATHS ${CMAKE_SOURCE_DIR}/vcpkg_installed/${TRIPLET}/debug/lib REQUIRED
   NO_DEFAULT_PATH)
 
