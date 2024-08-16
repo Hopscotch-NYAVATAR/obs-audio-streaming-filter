@@ -8,14 +8,7 @@
 #include <obs-module.h>
 #include <obs-frontend-api.h>
 
-#include <curlpp/cURLpp.hpp>
-#include <curlpp/Easy.hpp>
-#include <curlpp/Options.hpp>
-#include <nlohmann/json.hpp>
-
 #include "plugin-support.h"
-#include "AuthClient.hpp"
-#include "OpusUploader.hpp"
 
 static void handleFrontendEventCallback(obs_frontend_event event,
 					void *private_data)
@@ -84,8 +77,6 @@ AudioStreamingFilterContext::filterAudio(struct obs_audio_data *audio)
 			opusUploader->continueNewStream();
 			previousSegmentTimestamp = audio->timestamp;
 		}
-
-		opusUploader->uploadPendingSegments();
 	}
 
 	return audio;

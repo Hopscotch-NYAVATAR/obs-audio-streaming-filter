@@ -115,6 +115,7 @@ target_sources(
           src/AuthClient.cpp
           src/AuthClient.hpp
           src/Base64.hpp
+          src/OpusUploader.cpp
           src/OpusUploader.hpp
           src/audio-streaming-filter.h
           src/audio-streaming-filter.cpp
